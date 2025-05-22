@@ -1,0 +1,197 @@
+from models import db, Device, User
+from sqlalchemy import or_
+
+def get_all_devices(page=1, per_page=10, phone=None, sort_field=None, sort_order=None):
+    """获取所有设备列表"""
+    try:
+        # 构建基础查询
+        query = Device.query
+
+        # 如果指定了手机号，只返回该用户的设备
+        if phone:
+            query = query.filter(Device.phone == phone)
+
+        # 处理排序
+        if sort_field and sort_order and sort_field.strip() and sort_order.strip():
+            # 验证排序字段是否合法
+            allowed_sort_fields = {
+                'amount': Device.amount,
+                'is_returned': Device.is_returned,
+                'is_paid': Device.is_paid,
+                'created_at': Device.created_at
+            }
+            
+            if sort_field in allowed_sort_fields:
+                sort_column = allowed_sort_fields[sort_field]
+                if sort_order == 'ascending':
+                    query = query.order_by(sort_column.asc())
+                else:
+                    query = query.order_by(sort_column.desc())
+            else:
+                # 如果排序字段不合法，使用默认排序（按创建时间倒序）
+                query = query.order_by(Device.created_at.desc())
+        else:
+            # 默认排序（按创建时间倒序）
+            query = query.order_by(Device.created_at.desc())
+
+        # 获取总数
+        total = query.count()
+
+        # 分页
+        devices = query.offset((page - 1) * per_page).limit(per_page).all()
+
+        # 构建返回数据
+        items = []
+        for device in devices:
+            user = User.query.get(device.phone)
+            items.append({
+                'id': device.id,
+                'phone': device.phone,
+                'user_name': user.name if user else None,
+                'amount': device.amount,
+                'is_returned': device.is_returned,
+                'is_paid': device.is_paid,
+                'remark': device.remark,
+                'commission_rate': device.commission_rate,
+                'created_at': device.created_at.isoformat() if device.created_at else None
+            })
+
+        return {
+            'items': items,
+            'total': total,
+            'page': page,
+            'per_page': per_page
+        }
+    except Exception as e:
+        print(f"Error in get_all_devices: {str(e)}")
+        return {
+            'items': [],
+            'total': 0,
+            'page': page,
+            'per_page': per_page
+        }
+
+def update_device_phone(device_id, phone):
+    """更新设备所属人电话"""
+    device = Device.query.get(device_id)
+    if not device:
+        return False, "设备不存在"
+    
+    # 检查用户是否存在
+    user = User.query.get(phone)
+    if not user:
+        return False, "用户不存在"
+    
+    try:
+        device.phone = phone
+        db.session.commit()
+        return True, "更新成功"
+    except Exception as e:
+        db.session.rollback()
+        return False, str(e)
+
+def update_device_commission(device_id, commission_rate):
+    """更新设备分成比例"""
+    device = Device.query.get(device_id)
+    if not device:
+        return False, "设备不存在"
+    
+    if not 0 <= commission_rate <= 20:
+        return False, "分成比例必须在0-20之间"
+    
+    try:
+        device.commission_rate = commission_rate
+        db.session.commit()
+        return True, "更新成功"
+    except Exception as e:
+        db.session.rollback()
+        return False, str(e)
+
+def update_device_return_status(device_id, is_returned):
+    """更新设备返现状态"""
+    try:
+        print(f"开始处理返现状态更新，设备ID: {device_id}, 目标状态: {is_returned}")  # 调试日志
+        
+        device = Device.query.get(device_id)
+        if not device:
+            print(f"设备不存在: {device_id}")  # 调试日志
+            return False, "设备不存在"
+            
+        print(f"当前返现状态: {device.is_returned}")  # 调试日志
+        
+        # 直接设置状态，而不是切换
+        device.is_returned = is_returned
+        db.session.commit()
+        
+        print(f"返现状态已更新为: {device.is_returned}")  # 调试日志
+        return True, "返现状态更新成功"
+    except Exception as e:
+        print(f"返现状态更新出错: {str(e)}")  # 调试日志
+        db.session.rollback()
+        return False, str(e)
+
+def add_device(data):
+    """添加新设备"""
+    # 检查设备ID是否已存在
+    if Device.query.get(data['id']):
+        return False, "设备ID已存在"
+    
+    # 检查用户是否存在
+    if data.get('phone'):
+        user = User.query.get(data['phone'])
+        if not user:
+            return False, "用户不存在"
+    
+    device = Device(
+        id=data['id'],
+        phone=data.get('phone'),
+        amount=data['amount'],
+        remark=data.get('remark', ''),
+        commission_rate=data.get('commission_rate', 0)
+    )
+    
+    try:
+        db.session.add(device)
+        db.session.commit()
+        return True, "添加成功"
+    except Exception as e:
+        db.session.rollback()
+        return False, str(e)
+
+def delete_device(device_id):
+    """删除设备"""
+    device = Device.query.get(device_id)
+    if not device:
+        return False, "设备不存在"
+    
+    try:
+        db.session.delete(device)
+        db.session.commit()
+        return True, "删除成功"
+    except Exception as e:
+        db.session.rollback()
+        return False, str(e)
+
+def pay_device(device_id):
+    """设备打款"""
+    try:
+        print(f"开始处理打款请求，设备ID: {device_id}")  # 调试日志
+        
+        # 检查设备是否存在
+        device = Device.query.get(device_id)
+        if not device:
+            print(f"设备不存在: {device_id}")  # 调试日志
+            return False, "设备不存在"
+            
+        print(f"当前打款状态: {device.is_paid}")  # 调试日志
+        
+        # 直接设置状态，而不是切换
+        device.is_paid = not device.is_paid
+        db.session.commit()
+        
+        print(f"打款状态已更新为: {device.is_paid}")  # 调试日志
+        return True, "打款状态更新成功"
+    except Exception as e:
+        print(f"打款处理出错: {str(e)}")  # 调试日志
+        db.session.rollback()
+        return False, str(e) 
