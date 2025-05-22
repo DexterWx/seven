@@ -8,7 +8,8 @@ class User(db.Model):
     phone = db.Column(db.String(20), primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
-    commission_rate = db.Column(db.Float, default=0)     # 分成比例
+    min_commission_rate = db.Column(db.Float, default=0)     # 最小分成比例
+    max_commission_rate = db.Column(db.Float, default=0)     # 最大分成比例
     superior_name = db.Column(db.String(100))              # 上级名字
     superior_phone = db.Column(db.String(20), db.ForeignKey('users.phone'), nullable=True)
     unwithdrawn_amount = db.Column(db.Float, default=0)  # 未体现金额

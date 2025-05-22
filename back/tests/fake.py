@@ -29,34 +29,44 @@ def generate_device_id():
     uuid_str = str(uuid.uuid4())[:8]
     return f'DEV{uuid_str}{random_str}'
 
-def generate_user_data(level, parent_phone=None, parent_name=None):
-    """生成用户数据"""
+def generate_fake_users(count=50):
+    """生成假用户数据"""
     users = []
-    if level == 1:
-        # 第一层用户
-        for _ in range(2):
-            phone = generate_phone()
-            users.append({
-                'phone': phone,
-                'name': f'用户{phone[-4:]}',
-                'password': hashlib.md5('123456'.encode()).hexdigest(),
-                'commission_rate': random.randint(5, 20),
-                'superior_phone': None,
-                'superior_name': None
-            })
-    else:
-        # 其他层用户，每个上级随机生成0-5个下级
-        num_users = random.randint(0, 5)
-        for _ in range(num_users):
-            phone = generate_phone()
-            users.append({
-                'phone': phone,
-                'name': f'用户{phone[-4:]}',
-                'password': hashlib.md5('123456'.encode()).hexdigest(),
-                'commission_rate': random.randint(5, 20),
-                'superior_phone': parent_phone,
-                'superior_name': parent_name
-            })
+    for i in range(count):
+        # 生成手机号
+        phone = f"1{random.choice(['3', '5', '7', '8', '9'])}{''.join(random.choices('0123456789', k=9))}"
+        
+        # 生成姓名
+        name = f"用户{random.randint(1000, 9999)}"
+        
+        # 生成分成比例区间（默认都是0%-20%）
+        min_rate = 0
+        max_rate = 20
+        
+        # 生成密码（简单起见，使用固定密码）
+        password = "123456"
+        
+        # 生成上级（随机选择）
+        superior = random.choice(users) if users else None
+        
+        user = User(
+            phone=phone,
+            name=name,
+            password=password,
+            min_commission_rate=min_rate,
+            max_commission_rate=max_rate,
+            superior_phone=superior.phone if superior else None,
+            superior_name=superior.name if superior else None,
+            unwithdrawn_amount=random.uniform(0, 10000),
+            withdrawn_amount=random.uniform(0, 50000),
+            yesterday_income=random.uniform(0, 1000),
+            month_income=random.uniform(0, 10000),
+            team_yesterday_income=random.uniform(0, 5000),
+            team_month_income=random.uniform(0, 50000),
+            first_level_count=random.randint(0, 10)
+        )
+        users.append(user)
+    
     return users
 
 def generate_devices(users):
@@ -68,7 +78,7 @@ def generate_devices(users):
         for _ in range(num_devices):
             device = Device(
                 id=f"device_{random.randint(10000, 99999)}",
-                phone=user['phone'],  # 使用字典访问方式
+                phone=user.phone,  # 使用对象属性访问方式
                 amount=round(random.uniform(1000, 5000), 2),
                 is_returned=False,  # 初始状态为未返现
                 is_paid=False,      # 初始状态为未打款
@@ -91,97 +101,17 @@ def init_fake_data():
             
             # 生成用户数据
             print("正在生成用户数据...")
-            all_users = []
-            
-            # 生成第一层用户
-            level1_users = []
-            for _ in range(2):
-                phone = generate_phone()
-                user_data = {
-                    'phone': phone,
-                    'name': f'用户{phone[-4:]}',
-                    'password': hashlib.md5('123456'.encode()).hexdigest(),
-                    'commission_rate': random.randint(5, 20),
-                    'superior_phone': None,
-                    'superior_name': None,
-                    'first_level_count': 0
-                }
-                level1_users.append(user_data)
-                all_users.append(user_data)
-            
-            # 生成第二层用户
-            level2_users = []
-            for user1 in level1_users:
-                num_subordinates = random.randint(0, 5)
-                user1['first_level_count'] = num_subordinates
-                for _ in range(num_subordinates):
-                    phone = generate_phone()
-                    user_data = {
-                        'phone': phone,
-                        'name': f'用户{phone[-4:]}',
-                        'password': hashlib.md5('123456'.encode()).hexdigest(),
-                        'commission_rate': random.randint(5, 20),
-                        'superior_phone': user1['phone'],
-                        'superior_name': user1['name'],
-                        'first_level_count': 0
-                    }
-                    level2_users.append(user_data)
-                    all_users.append(user_data)
-            
-            # 生成第三层用户
-            level3_users = []
-            for user2 in level2_users:
-                num_subordinates = random.randint(0, 5)
-                user2['first_level_count'] = num_subordinates
-                for _ in range(num_subordinates):
-                    phone = generate_phone()
-                    user_data = {
-                        'phone': phone,
-                        'name': f'用户{phone[-4:]}',
-                        'password': hashlib.md5('123456'.encode()).hexdigest(),
-                        'commission_rate': random.randint(5, 20),
-                        'superior_phone': user2['phone'],
-                        'superior_name': user2['name'],
-                        'first_level_count': 0
-                    }
-                    level3_users.append(user_data)
-                    all_users.append(user_data)
-            
-            # 生成第四层用户
-            level4_users = []
-            for user3 in level3_users:
-                num_subordinates = random.randint(0, 5)
-                user3['first_level_count'] = num_subordinates
-                for _ in range(num_subordinates):
-                    phone = generate_phone()
-                    user_data = {
-                        'phone': phone,
-                        'name': f'用户{phone[-4:]}',
-                        'password': hashlib.md5('123456'.encode()).hexdigest(),
-                        'commission_rate': random.randint(5, 20),
-                        'superior_phone': user3['phone'],
-                        'superior_name': user3['name'],
-                        'first_level_count': 0
-                    }
-                    level4_users.append(user_data)
-                    all_users.append(user_data)
+            all_users = generate_fake_users()
             
             # 统计每层用户数量
-            level1_count = len(level1_users)
-            level2_count = len(level2_users)
-            level3_count = len(level3_users)
-            level4_count = len(level4_users)
+            level1_count = len(all_users)
             
             print(f"总共生成了 {len(all_users)} 个用户")
             print(f"第 1 层: {level1_count} 个用户")
-            print(f"第 2 层: {level2_count} 个用户")
-            print(f"第 3 层: {level3_count} 个用户")
-            print(f"第 4 层: {level4_count} 个用户")
             
             # 保存用户数据
             print("\n正在保存用户数据到数据库...")
-            for user_data in all_users:
-                user = User(**user_data)
+            for user in all_users:
                 db.session.add(user)
             db.session.commit()
             print("用户数据保存成功")

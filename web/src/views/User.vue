@@ -21,9 +21,15 @@
     >
       <el-table-column prop="phone" label="手机号" width="150" />
       <el-table-column prop="name" label="姓名" width="120" />
-      <el-table-column prop="commission_rate" label="分成比例" width="100">
+      <el-table-column label="分成比例" width="120">
         <template #default="scope">
-          {{ scope.row.commission_rate ? `${scope.row.commission_rate}%` : '-' }}
+          <el-button 
+            type="primary" 
+            link
+            @click="handleEditCommissionRate(scope.row)"
+          >
+            {{ scope.row.min_commission_rate }}% - {{ scope.row.max_commission_rate }}%
+          </el-button>
         </template>
       </el-table-column>
       <el-table-column prop="superior_name" label="上级姓名" width="120">
@@ -94,6 +100,26 @@
         </template>
       </el-table-column>
       <el-table-column 
+        prop="team_yesterday_income" 
+        label="团队昨日收益" 
+        width="120"
+        sortable="custom"
+      >
+        <template #default="scope">
+          {{ scope.row.team_yesterday_income?.toFixed(2) || '0.00' }}
+        </template>
+      </el-table-column>
+      <el-table-column 
+        prop="team_month_income" 
+        label="团队本月收益" 
+        width="120"
+        sortable="custom"
+      >
+        <template #default="scope">
+          {{ scope.row.team_month_income?.toFixed(2) || '0.00' }}
+        </template>
+      </el-table-column>
+      <el-table-column 
         prop="created_at" 
         label="创建时间" 
         width="120"
@@ -104,6 +130,96 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 编辑用户对话框 -->
+    <el-dialog
+      v-model="dialogVisible"
+      :title="dialogType === 'add' ? '添加用户' : '编辑用户'"
+      width="500px"
+    >
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="100px"
+      >
+        <el-form-item label="手机号" prop="phone">
+          <el-input v-model="form.phone" :disabled="dialogType === 'edit'" />
+        </el-form-item>
+        <el-form-item label="姓名" prop="name">
+          <el-input v-model="form.name" />
+        </el-form-item>
+        <el-form-item label="密码" prop="password" v-if="dialogType === 'add'">
+          <el-input v-model="form.password" type="password" />
+        </el-form-item>
+        <el-form-item label="上级手机号" prop="superior_phone">
+          <el-input v-model="form.superior_phone" />
+        </el-form-item>
+        <el-form-item label="最小分成比例" prop="min_commission_rate">
+          <el-input-number 
+            v-model="form.min_commission_rate" 
+            :min="0" 
+            :max="20" 
+            :precision="0"
+          />
+          <span class="unit">%</span>
+        </el-form-item>
+        <el-form-item label="最大分成比例" prop="max_commission_rate">
+          <el-input-number 
+            v-model="form.max_commission_rate" 
+            :min="0" 
+            :max="20" 
+            :precision="0"
+          />
+          <span class="unit">%</span>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleSubmit">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 编辑分成比例对话框 -->
+    <el-dialog
+      v-model="commissionRateDialogVisible"
+      title="编辑分成比例"
+      width="400px"
+    >
+      <el-form
+        ref="commissionRateFormRef"
+        :model="commissionRateForm"
+        :rules="commissionRateRules"
+        label-width="100px"
+      >
+        <el-form-item label="最小分成比例" prop="min_commission_rate">
+          <el-input-number 
+            v-model="commissionRateForm.min_commission_rate" 
+            :min="0" 
+            :max="20" 
+            :precision="0"
+          />
+          <span class="unit">%</span>
+        </el-form-item>
+        <el-form-item label="最大分成比例" prop="max_commission_rate">
+          <el-input-number 
+            v-model="commissionRateForm.max_commission_rate" 
+            :min="0" 
+            :max="20" 
+            :precision="0"
+          />
+          <span class="unit">%</span>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="commissionRateDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleCommissionRateSubmit">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
 
     <!-- 分页 -->
     <div class="pagination-container">
@@ -123,7 +239,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import axios from 'axios'
 
 // 配置axios
@@ -146,17 +262,67 @@ const currentLevel = ref(0)
 const sortField = ref('')  // 排序字段
 const sortOrder = ref('')  // 排序方向
 
+// 对话框相关
+const dialogVisible = ref(false)
+const dialogType = ref('add')  // 'add' 或 'edit'
+const formRef = ref(null)
+const form = ref({
+  phone: '',
+  name: '',
+  password: '',
+  superior_phone: '',
+  min_commission_rate: 0,
+  max_commission_rate: 20
+})
+
+// 表单验证规则
+const rules = {
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+  ],
+  name: [
+    { required: true, message: '请输入姓名', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码长度不能小于6位', trigger: 'blur' }
+  ],
+  min_commission_rate: [
+    { required: true, message: '请输入最小分成比例', trigger: 'blur' },
+    { type: 'number', min: 0, max: 20, message: '分成比例必须在0-20之间', trigger: 'blur' }
+  ],
+  max_commission_rate: [
+    { required: true, message: '请输入最大分成比例', trigger: 'blur' },
+    { type: 'number', min: 0, max: 20, message: '分成比例必须在0-20之间', trigger: 'blur' }
+  ]
+}
+
+// 分成比例对话框相关
+const commissionRateDialogVisible = ref(false)
+const commissionRateFormRef = ref(null)
+const commissionRateForm = ref({
+  phone: '',
+  min_commission_rate: 0,
+  max_commission_rate: 20
+})
+
+// 分成比例表单验证规则
+const commissionRateRules = {
+  min_commission_rate: [
+    { required: true, message: '请输入最小分成比例', trigger: 'blur' },
+    { type: 'number', min: 0, max: 20, message: '分成比例必须在0-20之间', trigger: 'blur' }
+  ],
+  max_commission_rate: [
+    { required: true, message: '请输入最大分成比例', trigger: 'blur' },
+    { type: 'number', min: 0, max: 20, message: '分成比例必须在0-20之间', trigger: 'blur' }
+  ]
+}
+
 // 获取用户列表
 const fetchUserList = async () => {
   loading.value = true
   try {
-    console.log('正在获取用户列表...', {
-      page: currentPage.value,
-      per_page: pageSize.value,
-      superior_phone: currentSuperior.value?.phone,
-      sort_field: sortField.value,
-      sort_order: sortOrder.value
-    })
     const response = await axios.get('/api/users', {
       params: {
         page: currentPage.value,
@@ -166,37 +332,83 @@ const fetchUserList = async () => {
         sort_order: sortOrder.value
       }
     })
-    console.log('获取到的用户列表数据:', response.data)
     if (response.data && response.data.items) {
       userList.value = response.data.items
       total.value = response.data.total
     } else {
-      console.error('返回数据格式不正确:', response.data)
       ElMessage.error('返回数据格式不正确')
     }
   } catch (error) {
     console.error('获取用户列表失败:', error)
-    if (error.response) {
-      console.error('错误响应:', error.response.data)
-      ElMessage.error(`获取用户列表失败: ${error.response.data.error || error.message}`)
-    } else if (error.request) {
-      console.error('未收到响应:', error.request)
-      ElMessage.error('服务器未响应，请检查后端服务是否运行')
-    } else {
-      ElMessage.error(`获取用户列表失败: ${error.message}`)
-    }
+    ElMessage.error(error.response?.data?.error || error.message)
   } finally {
     loading.value = false
   }
 }
 
+// 处理编辑
+const handleEdit = (row) => {
+  dialogType.value = 'edit'
+  form.value = {
+    phone: row.phone,
+    name: row.name,
+    superior_phone: row.superior_phone || '',
+    min_commission_rate: row.min_commission_rate,
+    max_commission_rate: row.max_commission_rate
+  }
+  dialogVisible.value = true
+}
+
+// 处理删除
+const handleDelete = async (row) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该用户吗？', '提示', {
+      type: 'warning'
+    })
+    
+    const response = await axios.delete(`/api/users/${row.phone}`)
+    if (response.data.success) {
+      ElMessage.success('删除成功')
+      fetchUserList()
+    } else {
+      ElMessage.error(response.data.error || '删除失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.response?.data?.error || error.message)
+    }
+  }
+}
+
+// 处理提交
+const handleSubmit = async () => {
+  if (!formRef.value) return
+  
+  try {
+    await formRef.value.validate()
+    
+    const url = dialogType.value === 'add' ? '/api/users' : `/api/users/${form.value.phone}`
+    const method = dialogType.value === 'add' ? 'post' : 'put'
+    
+    const response = await axios[method](url, form.value)
+    if (response.data.success) {
+      ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
+      dialogVisible.value = false
+      fetchUserList()
+    } else {
+      ElMessage.error(response.data.error || (dialogType.value === 'add' ? '添加失败' : '更新失败'))
+    }
+  } catch (error) {
+    if (error.response) {
+      ElMessage.error(error.response.data.error || error.message)
+    }
+  }
+}
+
 // 处理排序变化
 const handleSortChange = ({ prop, order }) => {
-  console.log('排序变化:', { prop, order })
-  // 将 Element Plus 的排序值转换为后端期望的值
   sortField.value = prop || ''
   sortOrder.value = order === 'ascending' ? 'ascending' : 'descending'
-  console.log('转换后的排序参数:', { sortField: sortField.value, sortOrder: sortOrder.value })
   currentPage.value = 1
   fetchUserList()
 }
@@ -206,8 +418,8 @@ const resetToRoot = () => {
   currentSuperior.value = null
   currentPage.value = 1
   currentLevel.value = 0
-  sortField.value = ''  // 重置排序
-  sortOrder.value = ''  // 重置排序
+  sortField.value = ''
+  sortOrder.value = ''
   fetchUserList()
 }
 
@@ -215,7 +427,6 @@ const resetToRoot = () => {
 watch(
   () => route.path,
   (newPath) => {
-    // 当路由变化时，重置状态
     resetToRoot()
   }
 )
@@ -234,26 +445,23 @@ const formatDate = (dateStr) => {
 const handleViewFirstLevel = (row) => {
   currentSuperior.value = row
   currentPage.value = 1
-  currentLevel.value += 1  // 增加层级
+  currentLevel.value += 1
   fetchUserList()
 }
 
 // 返回上级
 const handleBack = () => {
   if (currentLevel.value === 1) {
-    // 如果是第一层，直接返回根列表
     resetToRoot()
   } else if (currentSuperior.value?.superior_phone) {
-    // 如果有上级，返回上级的一级下线列表
     currentSuperior.value = {
       phone: currentSuperior.value.superior_phone,
       name: currentSuperior.value.superior_name
     }
-    currentLevel.value -= 1  // 减少层级
+    currentLevel.value -= 1
     currentPage.value = 1
     fetchUserList()
   } else {
-    // 如果没有上级，返回根列表
     resetToRoot()
   }
 }
@@ -269,6 +477,49 @@ const handleSizeChange = (val) => {
   pageSize.value = val
   currentPage.value = 1
   fetchUserList()
+}
+
+// 处理编辑分成比例
+const handleEditCommissionRate = (row) => {
+  commissionRateForm.value = {
+    phone: row.phone,
+    min_commission_rate: row.min_commission_rate,
+    max_commission_rate: row.max_commission_rate
+  }
+  commissionRateDialogVisible.value = true
+}
+
+// 处理分成比例提交
+const handleCommissionRateSubmit = async () => {
+  if (!commissionRateFormRef.value) return
+  
+  try {
+    await commissionRateFormRef.value.validate()
+    
+    const { phone, min_commission_rate, max_commission_rate } = commissionRateForm.value
+    
+    if (min_commission_rate > max_commission_rate) {
+      ElMessage.error('最小分成比例不能大于最大分成比例')
+      return
+    }
+    
+    const response = await axios.put(`/api/users/${phone}`, {
+      min_commission_rate,
+      max_commission_rate
+    })
+    
+    if (response.data.success) {
+      ElMessage.success('更新成功')
+      commissionRateDialogVisible.value = false
+      fetchUserList()
+    } else {
+      ElMessage.error(response.data.error || '更新失败')
+    }
+  } catch (error) {
+    if (error.response) {
+      ElMessage.error(error.response.data.error || error.message)
+    }
+  }
 }
 
 // 初始化
@@ -298,5 +549,16 @@ onMounted(() => {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+
+.unit {
+  margin-left: 8px;
+  color: #666;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 </style> 

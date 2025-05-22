@@ -101,6 +101,13 @@ def delete_user(phone):
     success, message = user.delete_user(phone)
     return jsonify({'success': success, 'message': message})
 
+@app.route('/api/users/<phone>', methods=['PUT'])
+def update_user(phone):
+    """更新用户信息"""
+    data = request.get_json()
+    success, message = user.update_user(phone, data)
+    return jsonify({'success': success, 'error': None if success else message})
+
 @app.route('/api/users/search', methods=['GET'])
 def search_users():
     phone = request.args.get('phone', '')
