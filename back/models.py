@@ -35,3 +35,5 @@ class Device(db.Model):
     is_paid = db.Column(db.Boolean, default=False)         # 是否打款
     remark = db.Column(db.Text)                            # 备注
     commission_rate = db.Column(db.Integer, default=0)     # 分成比例 
+    
+    yesterday_income = db.Column(db.Float, default=0)    # 昨日收益

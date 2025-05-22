@@ -255,7 +255,7 @@ const handleAssign = (row) => {
 const searchPhone = async () => {
   try {
     const response = await axios.get(`http://localhost:5000/api/users/search?phone=${assignForm.value.phone}`)
-    phoneOptions.value = response.data.map(user => user.phone)
+    phoneOptions.value = response.data  // 直接使用返回的电话号码列表
   } catch (error) {
     ElMessage.error('搜索电话号码失败')
     console.error('Error searching phones:', error)

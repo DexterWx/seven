@@ -8,13 +8,7 @@ def search_users_by_phone(phone):
     from models import User
     try:
         users = User.query.filter(User.phone.like(f'%{phone}%')).all()
-        return [{
-            'phone': user.phone,
-            'name': user.name,
-            'commission_rate': user.commission_rate,
-            'superior_name': User.query.get(user.superior_phone).name if user.superior_phone else None,
-            'superior_phone': user.superior_phone
-        } for user in users]
+        return [user.phone for user in users]
     except Exception as e:
         print(f"Error searching users: {str(e)}")
         return []

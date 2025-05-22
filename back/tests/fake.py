@@ -83,7 +83,8 @@ def generate_devices(users):
                 is_returned=False,  # 初始状态为未返现
                 is_paid=False,      # 初始状态为未打款
                 remark=f"测试设备 {random.randint(1, 100)}",
-                commission_rate=random.randint(5, 20)
+                commission_rate=random.randint(5, 20),
+                yesterday_income=random.uniform(0, 5)
             )
             devices.append(device)
     return devices

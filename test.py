@@ -151,18 +151,18 @@ if result:
 		print(f"备注: {node.get('remark')}")
 		print("-------------------")
 
-# 查询特定节点
-print("\n查询特定节点：")
-node_id = "ant89fd01e5d0ef2cac1515bfbefb594"
-result = Api_Data().get_node_status(node_id)
-if result:
-	print("节点状态信息：")
-	print(f"节点ID: {result.get('nodeID')}")
-	print(f"业务阶段: {result.get('stage')}")
-	print(f"网络状态: {result.get('status')}")
-	print(f"网络压测状态: {result.get('netBenchStatus')}")
-	print(f"验收未通过原因: {result.get('acceptanceRejectReason')}")
-	print(f"备注: {result.get('remark')}")
+# # 查询特定节点
+# print("\n查询特定节点：")
+# node_id = "ant89fd01e5d0ef2cac1515bfbefb594"
+# result = Api_Data().get_node_status(node_id)
+# if result:
+# 	print("节点状态信息：")
+# 	print(f"节点ID: {result.get('nodeID')}")
+# 	print(f"业务阶段: {result.get('stage')}")
+# 	print(f"网络状态: {result.get('status')}")
+# 	print(f"网络压测状态: {result.get('netBenchStatus')}")
+# 	print(f"验收未通过原因: {result.get('acceptanceRejectReason')}")
+# 	print(f"备注: {result.get('remark')}")
 
 # 查询账单
 print("\n查询账单详情：")

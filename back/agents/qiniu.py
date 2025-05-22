@@ -124,58 +124,31 @@ class QiniuDeviceClient(QiniuClient):
         
         return self._make_request('POST', path, json_data=json_data)
     
-    def get_device_income(self, node_id, day=None):
+    def get_device_income(self, node_ids, day=None):
         """
-        获取单个设备的收益信息
-        :param node_id: 设备ID
+        批量获取设备的收益信息
+        :param node_ids: 设备ID列表
         :param day: 日期，格式：yyyymmdd，默认为今天
-        :return: 收益信息
+        :return: 设备收益信息字典，key为设备ID，value为收益信息
         """
-        result = self.get_bill_details([node_id], day)
-        if result and 'details' in result and node_id in result['details']:
+        if not isinstance(node_ids, list):
+            node_ids = [node_ids]
+            
+        result = self.get_bill_details(node_ids, day)
+        if not result or 'details' not in result:
+            return {}
+            
+        income_dict = {}
+        for node_id in node_ids:
             detail = result['details'][node_id]
-            if 'measuredAmount' in detail:
-                return {
+            if detail.get('measuredAmount', None):
+                income_dict[node_id] = {
                     'original_amount': detail['measuredAmount'].get('originalAmount', 0),
                     'sla_deduction': detail['measuredAmount'].get('slaDeduction', 0),
                     'settle_amount': detail['measuredAmount'].get('settleAmount', 0),
                     'is_billing': detail['measuredAmount'].get('isBilling', False)
                 }
-        return None
-        
-    def get_device_bills(self, device_ids, start_time, end_time=None):
-        """
-        获取设备指定时间段的账单
-        :param device_ids: 设备ID列表
-        :param start_time: 开始时间
-        :param end_time: 结束时间，如果不传则默认为当前时间
-        :return: 账单列表，每个账单包含 settle_amount 字段
-        """
-        if not end_time:
-            end_time = datetime.now()
-            
-        # 将时间转换为yyyymmdd格式
-        start_day = start_time.strftime('%Y%m%d')
-        end_day = end_time.strftime('%Y%m%d')
-        
-        # 获取每天的账单
-        bills = []
-        current_day = datetime.strptime(start_day, '%Y%m%d')
-        while current_day <= end_time:
-            day_str = current_day.strftime('%Y%m%d')
-            result = self.get_bill_details(device_ids, day_str)
-            
-            if result and isinstance(result, dict) and 'details' in result:
-                for device_id, detail in result['details'].items():
-                    if isinstance(detail, dict) and 'measuredAmount' in detail:
-                        amount = detail['measuredAmount']
-                        if isinstance(amount, dict):
-                            bills.append({
-                                'device_id': device_id,
-                                'settle_amount': amount.get('settleAmount', 0),
-                                'time': current_day.isoformat()
-                            })
-            
-            current_day += timedelta(days=1)
-            
-        return bills
+            else:
+                income_dict[node_id] = None
+                
+        return income_dict
