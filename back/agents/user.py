@@ -40,7 +40,8 @@ def get_all_users(page=1, per_page=10, superior_phone=None, sort_field=None, sor
                 'month_income': User.month_income,
                 'team_yesterday_income': User.team_yesterday_income,
                 'team_month_income': User.team_month_income,
-                'created_at': User.created_at
+                'created_at': User.created_at,
+                'first_level_count': User.first_level_count
             }
             
             if sort_field in allowed_sort_fields:
