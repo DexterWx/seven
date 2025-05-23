@@ -83,7 +83,7 @@ const total = computed(() => statistics.value.withdrawn + statistics.value.unwit
 // 获取已提现金额
 const fetchWithdrawnAmount = async () => {
   try {
-    const response = await axios.get('http://localhost:5001/api/platform/withdrawn')
+    const response = await axios.get('/platform/withdrawn')
     if (response.data && response.data.amount !== undefined) {
       statistics.value.withdrawn = response.data.amount
     } else {
@@ -102,7 +102,7 @@ const fetchWithdrawnAmount = async () => {
 // 获取未提现金额
 const fetchUnwithdrawnAmount = async () => {
   try {
-    const response = await axios.get('http://localhost:5001/api/platform/unwithdrawn')
+    const response = await axios.get('/platform/unwithdrawn')
     if (response.data && response.data.amount !== undefined) {
       statistics.value.unwithdrawn = response.data.amount
     } else {
@@ -121,7 +121,7 @@ const fetchUnwithdrawnAmount = async () => {
 // 获取抽成总额
 const fetchCommissionTotal = async () => {
   try {
-    const response = await axios.get('http://localhost:5001/api/platform/commission')
+    const response = await axios.get('/platform/commission')
     if (response.data && response.data.amount !== undefined) {
       statistics.value.commission_total = response.data.amount
     } else {
@@ -140,7 +140,7 @@ const fetchCommissionTotal = async () => {
 // 获取设备总额
 const fetchDeviceTotal = async () => {
   try {
-    const response = await axios.get('http://localhost:5001/api/platform/devices/total')
+    const response = await axios.get('/platform/devices/total')
     if (response.data && response.data.amount !== undefined) {
       statistics.value.device_total = response.data.amount
     } else {

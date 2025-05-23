@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE_URL = 'http://localhost:5001/api'
+const BASE_URL = ''
 
 // 获取设备列表
 export const getDevices = async (params) => {

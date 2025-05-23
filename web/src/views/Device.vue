@@ -281,7 +281,7 @@ const handleAssign = (row) => {
 // 搜索电话号码
 const searchPhone = async () => {
   try {
-    const response = await axios.get(`http://localhost:5001/api/users/search?phone=${assignForm.value.phone}`)
+    const response = await axios.get(`/users/search?phone=${assignForm.value.phone}`)
     phoneOptions.value = response.data  // 直接使用返回的电话号码列表
   } catch (error) {
     ElMessage.error('搜索电话号码失败')
@@ -371,7 +371,7 @@ const handleDelete = (row) => {
     }
   ).then(async () => {
     try {
-      const response = await axios.delete(`http://localhost:5001/api/devices/${row.id}`)
+      const response = await axios.delete(`/devices/${row.id}`)
       if (response.data.success) {
         ElMessage.success('删除成功')
         fetchDeviceList()

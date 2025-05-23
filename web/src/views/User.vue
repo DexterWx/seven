@@ -475,10 +475,7 @@ const handleSubmit = async () => {
   try {
     await formRef.value.validate()
     
-    const url = dialogType.value === 'add' ? '/api/users' : `/api/users/${form.value.phone}`
-    const method = dialogType.value === 'add' ? 'post' : 'put'
-    
-    const response = await updateUser(form.value)
+    const response = await updateUser(form.value.phone, form.value)
     if (response.data.success) {
       ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
       dialogVisible.value = false
@@ -591,8 +588,7 @@ const handleCommissionRateSubmit = async () => {
       return
     }
     
-    const response = await updateUser({
-      phone,
+    const response = await updateUser(phone, {
       min_commission_rate,
       max_commission_rate
     })
@@ -630,7 +626,7 @@ const handleWithdrawSubmit = async () => {
     
     const { phone, amount } = withdrawForm.value
     
-    const response = await axios.post(`http://localhost:5001/api/users/${phone}/withdraw`, {
+    const response = await axios.post(`/users/${phone}/withdraw`, {
       amount: amount
     }, {
       headers: {

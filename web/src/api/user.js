@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE_URL = 'http://localhost:5001/api'
+const BASE_URL = ''
 
 // 获取用户列表
 export const getUsers = async (params) => {

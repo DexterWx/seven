@@ -8,7 +8,7 @@ import axios from 'axios'
 const app = createApp(App)
 
 // 配置axios
-axios.defaults.baseURL = 'http://localhost:5001/api' // 修改为正确的后端地址
+axios.defaults.baseURL = '/api' // 修改为正确的后端地址
 app.config.globalProperties.$axios = axios
 
 app.use(ElementPlus)
