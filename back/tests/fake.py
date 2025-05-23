@@ -11,7 +11,7 @@ import uuid
 project_root = str(Path(__file__).parent.parent)
 sys.path.append(project_root)
 
-from models import db, User, Device
+from models import db, User, Device, PlatformStats
 from app import app
 
 def generate_phone():
@@ -60,7 +60,7 @@ def generate_fake_users(count=50):
             max_commission_rate=max_rate,
             superior_phone=superior.phone if superior else None,
             superior_name=superior.name if superior else None,
-            unwithdrawn_amount=random.uniform(0, 10000),
+            unwithdrawn_amount=0,
             withdrawn_amount=0,
             yesterday_income=random.uniform(0, 1000),
             month_income=random.uniform(0, 10000),
@@ -90,11 +90,11 @@ def generate_devices(users):
             device = Device(
                 id=f"device_{random.randint(10000, 99999)}",
                 phone=user.phone,  # 使用对象属性访问方式
-                amount=round(random.uniform(1000, 5000), 2),
+                amount=100.0,
                 is_returned=False,  # 初始状态为未返现
                 is_paid=False,      # 初始状态为未打款
                 remark=f"测试设备 {random.randint(1, 100)}",
-                commission_rate=random.randint(5, 20),
+                commission_rate=0.1,
                 first_commission_rate=0.1,
                 yesterday_income=random.uniform(0, 5)
             )
@@ -110,6 +110,7 @@ def init_fake_data():
             # 清空现有数据
             Device.query.delete()
             User.query.delete()
+            PlatformStats.query.delete()  # 清空平台统计数据
             db.session.commit()
             
             # 生成用户数据
@@ -140,6 +141,22 @@ def init_fake_data():
                 db.session.add(device)
             db.session.commit()
             print("设备数据保存成功")
+
+            # 初始化平台统计数据
+            print("\n正在初始化平台统计数据...")
+            platform_stats = PlatformStats(
+                withdrawn=0,
+                unwithdrawn=0,
+                total=0,
+                commission_total=0,
+                device_total=0,
+                return_total=0,
+                paid_return=0,
+                unpaid_return=0
+            )
+            db.session.add(platform_stats)
+            db.session.commit()
+            print("平台统计数据初始化成功")
             
             print("\n测试数据创建完成！")
             

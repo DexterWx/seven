@@ -48,7 +48,7 @@
             @click="handleCommission(scope.row)"
             style="margin-right: 10px;"
           >
-            {{ scope.row.commission_rate }}%
+            {{ (scope.row.commission_rate * 100).toFixed(0) }}%
           </el-button>
           <el-button
             size="small"
@@ -281,7 +281,7 @@ const handleAssign = (row) => {
 // 搜索电话号码
 const searchPhone = async () => {
   try {
-    const response = await axios.get(`http://localhost:5000/api/users/search?phone=${assignForm.value.phone}`)
+    const response = await axios.get(`http://localhost:5001/api/users/search?phone=${assignForm.value.phone}`)
     phoneOptions.value = response.data  // 直接使用返回的电话号码列表
   } catch (error) {
     ElMessage.error('搜索电话号码失败')
@@ -309,14 +309,17 @@ const confirmAssign = async () => {
 // 处理分成
 const handleCommission = (row) => {
   currentDevice.value = row
-  commissionForm.value.rate = row.commission_rate || 0
+  commissionForm.value.rate = Math.round(row.commission_rate * 100) // 转换为百分比
   commissionDialogVisible.value = true
 }
 
 // 确认分成
 const confirmCommission = async () => {
   try {
-    const response = await updateDeviceCommission(currentDevice.value.id, commissionForm.value.rate)
+    const response = await updateDeviceCommission(
+      currentDevice.value.id, 
+      commissionForm.value.rate / 100 // 转换为小数
+    )
     if (response.data.success) {
       ElMessage.success('设置分成成功')
       commissionDialogVisible.value = false
@@ -368,7 +371,7 @@ const handleDelete = (row) => {
     }
   ).then(async () => {
     try {
-      const response = await axios.delete(`http://localhost:5000/api/devices/${row.id}`)
+      const response = await axios.delete(`http://localhost:5001/api/devices/${row.id}`)
       if (response.data.success) {
         ElMessage.success('删除成功')
         fetchDeviceList()

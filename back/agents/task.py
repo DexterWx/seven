@@ -7,7 +7,7 @@ project_root = str(Path(__file__).parent.parent)
 sys.path.append(project_root)
 
 from datetime import datetime, timedelta
-from models import Device, db, User
+from models import Device, db, User, PlatformStats
 from qiniu import QiniuDeviceClient
 from sqlalchemy import func
 from app import app
@@ -34,6 +34,8 @@ def calculate_user_income():
             # 1. 平台抽成
             platform_commission = device_income * device.commission_rate
             remaining_income = device_income - platform_commission
+            platform_stats = PlatformStats.query.first()
+            platform_stats.commission_total += platform_commission
             
             # 2. 上级分成
             if user.superior_phone:
@@ -41,10 +43,16 @@ def calculate_user_income():
                 if superior:
                     superior_share = remaining_income * device.first_commission_rate
                     superior.yesterday_income += superior_share
+                    superior.month_income += superior_share
+                    superior.unwithdrawn_amount += superior_share
+                    superior.team_yesterday_income += superior_share
+                    superior.team_month_income += superior_share
                     remaining_income -= superior_share
             
             # 3. 用户获得剩余收益
             user.yesterday_income += remaining_income
+            user.month_income += remaining_income
+            user.unwithdrawn_amount += remaining_income
 
         # 提交数据库更改
         db.session.commit()
@@ -106,8 +114,8 @@ def get_device_bills_batch():
     except Exception as e:
         print(f"获取设备账单数据时出错: {str(e)}")
 
-def zero_user_yesterday_income():
-    """清零所有用户的昨日收益"""
+def zero_user_income():
+    """清零所有用户的昨日、本月收益"""
     try:
         # 获取所有用户
         users = User.query.all()
@@ -118,6 +126,11 @@ def zero_user_yesterday_income():
         # 清零所有用户的昨日收益
         for user in users:
             user.yesterday_income = 0
+            user.team_yesterday_income = 0
+            # 如果今天是月初1号，清零月收益
+            if datetime.now().day == 1:
+                user.month_income = 0
+                user.team_month_income = 0
 
         # 提交数据库更改
         db.session.commit()
@@ -130,5 +143,5 @@ def zero_user_yesterday_income():
 if __name__ == "__main__":
     with app.app_context():
         get_device_bills_batch()
-        zero_user_yesterday_income()  # 先清零
+        zero_user_income()  # 先清零
         calculate_user_income()

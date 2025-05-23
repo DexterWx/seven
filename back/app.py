@@ -2,11 +2,18 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from models import db
 import os
-from agents import user, device
+from agents import user, device, profile
 from config import Config
 
 app = Flask(__name__)
-CORS(app)
+# 配置 CORS
+CORS(app, resources={
+    r"/api/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 # 获取当前文件所在目录的绝对路径
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -30,18 +37,24 @@ with app.app_context():
 # 设备相关接口
 @app.route('/api/devices', methods=['GET'])
 def get_devices():
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
-    phone = request.args.get('phone')
-    sort_field = request.args.get('sort_field')
-    sort_order = request.args.get('sort_order')
-    return jsonify(device.get_all_devices(
-        page=page,
-        per_page=per_page,
-        phone=phone,
-        sort_field=sort_field,
-        sort_order=sort_order
-    ))
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        phone = request.args.get('phone')
+        sort_field = request.args.get('sort_field')
+        sort_order = request.args.get('sort_order')
+        
+        result = device.get_all_devices(
+            page=page,
+            per_page=per_page,
+            phone=phone,
+            sort_field=sort_field,
+            sort_order=sort_order
+        )
+        
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/devices', methods=['POST'])
 def add_device():
@@ -155,5 +168,57 @@ def withdraw_user(phone):
         print(f"Error in withdraw_user: {str(e)}")
         return jsonify({'success': False, 'message': '提现失败'}), 500
 
+@app.route('/api/platform/stats', methods=['GET'])
+def get_platform_stats():
+    """获取平台统计数据"""
+    try:
+        stats = profile.get_platform_stats()
+        if stats is None:
+            return jsonify({'error': '获取平台统计数据失败'}), 500
+        return jsonify(stats)
+    except Exception as e:
+        print(f"Error in get_platform_stats: {str(e)}")
+        return jsonify({'error': '获取平台统计数据失败'}), 500
+
+@app.route('/api/platform/withdrawn', methods=['GET'])
+def get_withdrawn():
+    """获取已提现金额"""
+    try:
+        result = profile.get_withdrawn_amount()
+        if result is None:
+            return jsonify({'error': '获取已提现金额失败'}), 500
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error in get_withdrawn: {str(e)}")
+        return jsonify({'error': '获取已提现金额失败'}), 500
+
+@app.route('/api/platform/unwithdrawn', methods=['GET'])
+def get_unwithdrawn():
+    """获取未提现金额"""
+    try:
+        result = profile.get_unwithdrawn_amount()
+        if result is None:
+            return jsonify({'error': '获取未提现金额失败'}), 500
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error in get_unwithdrawn: {str(e)}")
+        return jsonify({'error': '获取未提现金额失败'}), 500
+
+@app.route('/api/platform/commission', methods=['GET'])
+def get_commission():
+    """获取抽成总额"""
+    result = profile.get_commission_total()
+    if result is None:
+        return jsonify({'error': '获取抽成总额失败'}), 500
+    return jsonify(result)
+
+@app.route('/api/platform/devices/total', methods=['GET'])
+def get_device_total():
+    """获取设备总额"""
+    result = profile.get_device_total()
+    if result is None:
+        return jsonify({'error': '获取设备总额失败'}), 500
+    return jsonify(result)
+
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True, port=5001) 

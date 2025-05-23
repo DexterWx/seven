@@ -111,7 +111,7 @@
       </el-table-column>
       <el-table-column 
         prop="yesterday_income" 
-        label="昨日收益" 
+        label="昨日总收益" 
         width="120"
         sortable="custom"
       >
@@ -121,7 +121,7 @@
       </el-table-column>
       <el-table-column 
         prop="month_income" 
-        label="本月收益" 
+        label="本月总收益" 
         width="120"
         sortable="custom"
       >
@@ -306,12 +306,8 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getUsers, addUser, updateUser, deleteUser, searchUsers } from '../api/user'
 import axios from 'axios'
-
-// 配置axios
-axios.defaults.baseURL = 'http://127.0.0.1:5000'
-axios.defaults.timeout = 5000
-axios.defaults.headers.common['Content-Type'] = 'application/json'
 
 // 获取路由实例
 const route = useRoute()
@@ -412,16 +408,14 @@ const searchForm = ref({
 const fetchUserList = async () => {
   loading.value = true
   try {
-    const response = await axios.get('/api/users', {
-      params: {
-        page: currentPage.value,
-        per_page: pageSize.value,
-        superior_phone: currentSuperior.value?.phone,
-        sort_field: sortField.value,
-        sort_order: sortOrder.value,
-        phone: searchForm.value.phone,
-        name: searchForm.value.name
-      }
+    const response = await getUsers({
+      page: currentPage.value,
+      per_page: pageSize.value,
+      superior_phone: currentSuperior.value?.phone,
+      sort_field: sortField.value,
+      sort_order: sortOrder.value,
+      phone: searchForm.value.phone,
+      name: searchForm.value.name
     })
     if (response.data) {
       userList.value = response.data.items || []
@@ -460,7 +454,7 @@ const handleDelete = async (row) => {
       type: 'warning'
     })
     
-    const response = await axios.delete(`/api/users/${row.phone}`)
+    const response = await deleteUser(row.phone)
     if (response.data.success) {
       ElMessage.success('删除成功')
       fetchUserList()
@@ -484,7 +478,7 @@ const handleSubmit = async () => {
     const url = dialogType.value === 'add' ? '/api/users' : `/api/users/${form.value.phone}`
     const method = dialogType.value === 'add' ? 'post' : 'put'
     
-    const response = await axios[method](url, form.value)
+    const response = await updateUser(form.value)
     if (response.data.success) {
       ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
       dialogVisible.value = false
@@ -597,7 +591,8 @@ const handleCommissionRateSubmit = async () => {
       return
     }
     
-    const response = await axios.put(`/api/users/${phone}`, {
+    const response = await updateUser({
+      phone,
       min_commission_rate,
       max_commission_rate
     })
@@ -635,20 +630,26 @@ const handleWithdrawSubmit = async () => {
     
     const { phone, amount } = withdrawForm.value
     
-    const response = await axios.post(`/api/users/${phone}/withdraw`, {
-      amount
+    const response = await axios.post(`http://localhost:5001/api/users/${phone}/withdraw`, {
+      amount: amount
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
     
     if (response.data.success) {
-      ElMessage.success('更新成功')
+      ElMessage.success('提现成功')
       withdrawDialogVisible.value = false
       fetchUserList()
     } else {
-      ElMessage.error(response.data.error || '更新失败')
+      ElMessage.error(response.data.message || '提现失败')
     }
   } catch (error) {
     if (error.response) {
-      ElMessage.error(error.response.data.error || error.message)
+      ElMessage.error(error.response.data.message || error.message)
+    } else {
+      ElMessage.error('提现失败')
     }
   }
 }

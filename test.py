@@ -166,8 +166,8 @@ if result:
 
 # 查询账单
 print("\n查询账单详情：")
-node_ids = ["ant0fc6d97b039c6d09d7b2f0143c60c"]  # 可以添加多个节点ID
-day = "20250521"  # 格式：yyyymmdd
+node_ids = ["ant0fc6d97b039c6d09d7b2f0143c60c","ante8861bc69605acfdb6147ad613e42"]  # 可以添加多个节点ID
+day = "20250519"  # 格式：yyyymmdd
 bill_result = Api_Data().get_bill_details(node_ids, day)
 if bill_result and 'details' in bill_result:
 	for node_id, detail in bill_result['details'].items():

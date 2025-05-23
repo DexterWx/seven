@@ -122,23 +122,15 @@ def update_device_commission(device_id, commission_rate):
 def update_device_return_status(device_id, is_returned):
     """更新设备返现状态"""
     try:
-        print(f"开始处理返现状态更新，设备ID: {device_id}, 目标状态: {is_returned}")  # 调试日志
-        
         device = Device.query.get(device_id)
         if not device:
-            print(f"设备不存在: {device_id}")  # 调试日志
             return False, "设备不存在"
             
-        print(f"当前返现状态: {device.is_returned}")  # 调试日志
-        
-        # 直接设置状态，而不是切换
         device.is_returned = is_returned
         db.session.commit()
         
-        print(f"返现状态已更新为: {device.is_returned}")  # 调试日志
         return True, "返现状态更新成功"
     except Exception as e:
-        print(f"返现状态更新出错: {str(e)}")  # 调试日志
         db.session.rollback()
         return False, str(e)
 
@@ -187,23 +179,14 @@ def delete_device(device_id):
 def pay_device(device_id):
     """设备打款"""
     try:
-        print(f"开始处理打款请求，设备ID: {device_id}")  # 调试日志
-        
-        # 检查设备是否存在
         device = Device.query.get(device_id)
         if not device:
-            print(f"设备不存在: {device_id}")  # 调试日志
             return False, "设备不存在"
             
-        print(f"当前打款状态: {device.is_paid}")  # 调试日志
-        
-        # 直接设置状态，而不是切换
         device.is_paid = not device.is_paid
         db.session.commit()
         
-        print(f"打款状态已更新为: {device.is_paid}")  # 调试日志
         return True, "打款状态更新成功"
     except Exception as e:
-        print(f"打款处理出错: {str(e)}")  # 调试日志
         db.session.rollback()
         return False, str(e) 

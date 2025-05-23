@@ -34,7 +34,20 @@ class Device(db.Model):
     is_returned = db.Column(db.Boolean, default=False)     # 是否返现
     is_paid = db.Column(db.Boolean, default=False)         # 是否打款
     remark = db.Column(db.Text)                            # 备注
-    commission_rate = db.Column(db.Integer, default=0)     # 分成比例 
-    first_commission_rate = db.Column(db.Integer, default=0)     # 一级分成比例 
+    commission_rate = db.Column(db.Integer, default=0.1)     # 分成比例 
+    first_commission_rate = db.Column(db.Integer, default=0.1)     # 一级分成比例 
     
     yesterday_income = db.Column(db.Float, default=0)    # 昨日收益
+
+class PlatformStats(db.Model):
+    __tablename__ = 'platform_stats'
+    id = db.Column(db.Integer, primary_key=True)
+    withdrawn = db.Column(db.Float, default=0)          # 已提现金额
+    unwithdrawn = db.Column(db.Float, default=0)        # 未提现金额
+    total = db.Column(db.Float, default=0)              # 总额
+    commission_total = db.Column(db.Float, default=0)   # 抽成总额
+    device_total = db.Column(db.Float, default=0)       # 设备金额总和
+    return_total = db.Column(db.Float, default=0)       # 返现总额
+    paid_return = db.Column(db.Float, default=0)        # 已打款返现金额
+    unpaid_return = db.Column(db.Float, default=0)      # 未打款返现金额
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
