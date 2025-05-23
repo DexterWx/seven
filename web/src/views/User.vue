@@ -13,6 +13,30 @@
       </span>
     </div>
 
+    <!-- 搜索栏 -->
+    <div class="search-bar">
+      <div class="search-item">
+        <el-input
+          v-model="searchForm.phone"
+          placeholder="搜索手机号"
+          clearable
+          style="width: 200px;"
+        />
+        <el-button type="primary" @click="handlePhoneSearch">搜索</el-button>
+        <el-button v-if="searchForm.phone" @click="handleResetPhone">返回</el-button>
+      </div>
+      <div class="search-item">
+        <el-input
+          v-model="searchForm.name"
+          placeholder="搜索姓名"
+          clearable
+          style="width: 200px;"
+        />
+        <el-button type="primary" @click="handleNameSearch">搜索</el-button>
+        <el-button v-if="searchForm.name" @click="handleResetName">返回</el-button>
+      </div>
+    </div>
+
     <el-table 
       :data="userList" 
       style="width: 100%" 
@@ -76,7 +100,13 @@
         sortable="custom"
       >
         <template #default="scope">
-          {{ scope.row.withdrawn_amount?.toFixed(2) || '0.00' }}
+          <el-button 
+            type="primary" 
+            link
+            @click="handleEditWithdraw(scope.row)"
+          >
+            {{ scope.row.withdrawn_amount?.toFixed(2) || '0.00' }}
+          </el-button>
         </template>
       </el-table-column>
       <el-table-column 
@@ -221,6 +251,42 @@
       </template>
     </el-dialog>
 
+    <!-- 编辑提现金额对话框 -->
+    <el-dialog
+      v-model="withdrawDialogVisible"
+      title="更新提现金额"
+      width="400px"
+    >
+      <el-form
+        ref="withdrawFormRef"
+        :model="withdrawForm"
+        :rules="withdrawRules"
+        label-width="100px"
+      >
+        <el-form-item label="当前提现金额">
+          <span>{{ withdrawForm.current_amount?.toFixed(2) || '0.00' }}</span>
+        </el-form-item>
+        <el-form-item label="本次提现金" prop="amount">
+          <el-input-number 
+            v-model="withdrawForm.amount" 
+            :min="0" 
+            :precision="2"
+            :step="100"
+            style="width: 200px"
+          />
+        </el-form-item>
+        <el-form-item label="提现后总额">
+          <span>{{ (withdrawForm.current_amount + withdrawForm.amount).toFixed(2) }}</span>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="withdrawDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleWithdrawSubmit">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
     <!-- 分页 -->
     <div class="pagination-container">
       <el-pagination
@@ -319,6 +385,29 @@ const commissionRateRules = {
   ]
 }
 
+// 提现金额对话框相关
+const withdrawDialogVisible = ref(false)
+const withdrawFormRef = ref(null)
+const withdrawForm = ref({
+  phone: '',
+  current_amount: 0,
+  amount: 0
+})
+
+// 提现金额表单验证规则
+const withdrawRules = {
+  amount: [
+    { required: true, message: '请输入提现金额', trigger: 'blur' },
+    { type: 'number', min: 0, message: '提现金额必须大于0', trigger: 'blur' }
+  ]
+}
+
+// 搜索表单
+const searchForm = ref({
+  phone: '',
+  name: ''
+})
+
 // 获取用户列表
 const fetchUserList = async () => {
   loading.value = true
@@ -329,12 +418,17 @@ const fetchUserList = async () => {
         per_page: pageSize.value,
         superior_phone: currentSuperior.value?.phone,
         sort_field: sortField.value,
-        sort_order: sortOrder.value
+        sort_order: sortOrder.value,
+        phone: searchForm.value.phone,
+        name: searchForm.value.name
       }
     })
-    if (response.data && response.data.items) {
-      userList.value = response.data.items
-      total.value = response.data.total
+    if (response.data) {
+      userList.value = response.data.items || []
+      total.value = response.data.total || 0
+      if (userList.value.length === 0) {
+        ElMessage.info('没有找到匹配的用户')
+      }
     } else {
       ElMessage.error('返回数据格式不正确')
     }
@@ -522,6 +616,71 @@ const handleCommissionRateSubmit = async () => {
   }
 }
 
+// 处理编辑提现金额
+const handleEditWithdraw = (row) => {
+  withdrawForm.value = {
+    phone: row.phone,
+    current_amount: row.withdrawn_amount || 0,
+    amount: 0
+  }
+  withdrawDialogVisible.value = true
+}
+
+// 处理提现金额提交
+const handleWithdrawSubmit = async () => {
+  if (!withdrawFormRef.value) return
+  
+  try {
+    await withdrawFormRef.value.validate()
+    
+    const { phone, amount } = withdrawForm.value
+    
+    const response = await axios.post(`/api/users/${phone}/withdraw`, {
+      amount
+    })
+    
+    if (response.data.success) {
+      ElMessage.success('更新成功')
+      withdrawDialogVisible.value = false
+      fetchUserList()
+    } else {
+      ElMessage.error(response.data.error || '更新失败')
+    }
+  } catch (error) {
+    if (error.response) {
+      ElMessage.error(error.response.data.error || error.message)
+    }
+  }
+}
+
+// 处理手机号搜索
+const handlePhoneSearch = () => {
+  searchForm.value.name = ''  // 清空姓名搜索
+  currentPage.value = 1
+  fetchUserList()
+}
+
+// 处理姓名搜索
+const handleNameSearch = () => {
+  searchForm.value.phone = ''  // 清空手机号搜索
+  currentPage.value = 1
+  fetchUserList()
+}
+
+// 处理手机号搜索重置
+const handleResetPhone = () => {
+  searchForm.value.phone = ''
+  currentPage.value = 1
+  fetchUserList()
+}
+
+// 处理姓名搜索重置
+const handleResetName = () => {
+  searchForm.value.name = ''
+  currentPage.value = 1
+  fetchUserList()
+}
+
 // 初始化
 onMounted(() => {
   resetToRoot()
@@ -538,6 +697,19 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 20px;
+}
+
+.search-bar {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .current-path {

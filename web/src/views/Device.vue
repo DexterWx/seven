@@ -4,6 +4,20 @@
       <el-button type="primary" @click="showAddDialog">录入设备</el-button>
     </div>
     
+    <!-- 搜索栏 -->
+    <div class="search-bar">
+      <div class="search-item">
+        <el-input
+          v-model="searchForm.phone"
+          placeholder="搜索所属人电话"
+          clearable
+          style="width: 200px;"
+        />
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button v-if="searchForm.phone" @click="handleReset">返回</el-button>
+      </div>
+    </div>
+    
     <el-table :data="deviceList" style="width: 100%" v-loading="loading">
       <el-table-column prop="id" label="设备ID" width="180" />
       <el-table-column prop="phone" label="所属人电话" width="180" />
@@ -185,6 +199,11 @@ const commissionForm = ref({
   rate: 0
 })
 
+// 搜索表单
+const searchForm = ref({
+  phone: ''
+})
+
 // 格式化日期
 const formatDate = (dateStr) => {
   const date = new Date(dateStr)
@@ -201,10 +220,18 @@ const fetchDeviceList = async () => {
   try {
     const response = await getDevices({
       page: currentPage.value,
-      per_page: pageSize.value
+      per_page: pageSize.value,
+      phone: searchForm.value.phone || undefined
     })
-    deviceList.value = response.data.items
-    total.value = response.data.total
+    if (response.data) {
+      deviceList.value = response.data.items || []
+      total.value = response.data.total || 0
+      if (deviceList.value.length === 0) {
+        ElMessage.info('没有找到匹配的设备')
+      }
+    } else {
+      ElMessage.error('返回数据格式不正确')
+    }
   } catch (error) {
     ElMessage.error('获取设备列表失败')
     console.error('Error fetching devices:', error)
@@ -394,6 +421,19 @@ const handlePay = (row) => {
   })
 }
 
+// 处理搜索
+const handleSearch = () => {
+  currentPage.value = 1
+  fetchDeviceList()
+}
+
+// 处理搜索重置
+const handleReset = () => {
+  searchForm.value.phone = ''
+  currentPage.value = 1
+  fetchDeviceList()
+}
+
 onMounted(() => {
   fetchDeviceList()
 })
@@ -406,6 +446,12 @@ onMounted(() => {
 
 .header {
   margin-bottom: 20px;
+}
+
+.search-bar {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
 }
 
 .pagination-container {

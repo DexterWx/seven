@@ -1,7 +1,7 @@
 from sqlalchemy import or_
 from datetime import datetime, timedelta
 from .qiniu import QiniuDeviceClient
-from models import User, Device
+from models import User, Device, db
 
 def search_users_by_phone(phone):
     """模糊搜索用户电话号码"""
@@ -13,7 +13,7 @@ def search_users_by_phone(phone):
         print(f"Error searching users: {str(e)}")
         return []
 
-def get_all_users(page=1, per_page=10, superior_phone=None, sort_field=None, sort_order=None):
+def get_all_users(page=1, per_page=10, superior_phone=None, sort_field=None, sort_order=None, phone=None, name=None):
     """获取所有用户列表"""
     from models import User
     try:
@@ -23,6 +23,14 @@ def get_all_users(page=1, per_page=10, superior_phone=None, sort_field=None, sor
         # 如果指定了上级手机号，只返回该上级的下线
         if superior_phone:
             query = query.filter(User.superior_phone == superior_phone)
+
+        # 处理手机号搜索
+        if phone:
+            query = query.filter(User.phone.like(f'%{phone}%'))
+
+        # 处理姓名搜索
+        if name:
+            query = query.filter(User.name.like(f'%{name}%'))
 
         # 处理排序
         if sort_field and sort_order and sort_field.strip() and sort_order.strip():
@@ -326,3 +334,25 @@ def update_user(phone, data):
     except Exception as e:
         db.session.rollback()
         return False, str(e)
+
+def withdraw_user(phone, amount):
+    """用户提现"""
+    try:
+        user = User.query.get(phone)
+        if not user:
+            return False, '用户不存在'
+            
+        if amount > user.unwithdrawn_amount:
+            return False, '提现金额不能大于未提现金额'
+            
+        # 更新用户提现金额
+        user.unwithdrawn_amount -= amount
+        user.withdrawn_amount += amount
+        
+        # 提交事务
+        db.session.commit()
+        return True, '提现成功'
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error in withdraw_user: {str(e)}")
+        return False, '提现失败'

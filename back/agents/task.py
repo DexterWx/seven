@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from collections import defaultdict
 
 # 添加项目根目录到 Python 路径
 project_root = str(Path(__file__).parent.parent)
@@ -14,29 +15,40 @@ from app import app
 def calculate_user_income():
     """计算用户昨日收益并更新到数据库"""
     try:
-        # 获取所有用户
-        users = User.query.all()
-        if not users:
-            print("没有找到任何用户")
+        # 获取所有设备
+        devices = Device.query.all()
+        if not devices:
+            print("没有找到任何设备")
             return
 
-        # 更新用户昨日收益
-        updated_count = 0
-        for user in users:
-            # 获取用户的所有设备
-            devices = Device.query.filter_by(phone=user.phone).all()
+        # 遍历所有设备计算收益
+        for device in devices:
+            # 获取设备所属用户
+            user = User.query.get(device.phone)
+            if not user:
+                continue
+
+            # 设备原始收益
+            device_income = device.yesterday_income
             
-            # 计算用户昨日收益（所有设备的昨日收益之和）
-            yesterday_income = sum(device.yesterday_income for device in devices)
+            # 1. 平台抽成
+            platform_commission = device_income * device.commission_rate
+            remaining_income = device_income - platform_commission
             
-            # 更新用户昨日收益
-            user.yesterday_income = yesterday_income
-            updated_count += 1
-            print(f"用户 {user.phone} 昨日收益: {yesterday_income}")
+            # 2. 上级分成
+            if user.superior_phone:
+                superior = User.query.get(user.superior_phone)
+                if superior:
+                    superior_share = remaining_income * device.first_commission_rate
+                    superior.yesterday_income += superior_share
+                    remaining_income -= superior_share
+            
+            # 3. 用户获得剩余收益
+            user.yesterday_income += remaining_income
 
         # 提交数据库更改
         db.session.commit()
-        print(f"成功更新 {updated_count} 个用户的昨日收益")
+        print("成功更新用户昨日收益")
 
     except Exception as e:
         db.session.rollback()
@@ -54,6 +66,7 @@ def get_device_bills_batch():
         # 获取昨天的日期
         yesterday = datetime.now() - timedelta(days=1)
         yesterday_str = yesterday.strftime('%Y%m%d')
+        print(f"获取 {yesterday_str} 的账单数据")
 
         # 每100个设备一批
         batch_size = 100
@@ -72,11 +85,14 @@ def get_device_bills_batch():
                 # 获取账单数据
                 qiniu_client = QiniuDeviceClient()
                 income_dict = qiniu_client.get_device_income(device_ids, yesterday_str)
+                
                 # 更新每个设备的昨日收益
                 for device_id, income in income_dict.items():
                     device = Device.query.get(device_id)
                     if device:
-                        device.yesterday_income = income['settle_amount'] if income else 0
+                        # 记录设备的原始收益
+                        original_amount = income['settle_amount'] if income else 0
+                        device.yesterday_income = original_amount
                         db.session.commit()
                 
                 print(f"成功处理 {len(batch_devices)} 个设备的账单数据")
@@ -90,7 +106,29 @@ def get_device_bills_batch():
     except Exception as e:
         print(f"获取设备账单数据时出错: {str(e)}")
 
+def zero_user_yesterday_income():
+    """清零所有用户的昨日收益"""
+    try:
+        # 获取所有用户
+        users = User.query.all()
+        if not users:
+            print("没有找到任何用户")
+            return
+
+        # 清零所有用户的昨日收益
+        for user in users:
+            user.yesterday_income = 0
+
+        # 提交数据库更改
+        db.session.commit()
+        print("成功清零所有用户的昨日收益")
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"清零用户昨日收益时出错: {str(e)}")
+
 if __name__ == "__main__":
     with app.app_context():
         get_device_bills_batch()
+        zero_user_yesterday_income()  # 先清零
         calculate_user_income()

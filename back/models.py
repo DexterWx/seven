@@ -6,7 +6,7 @@ db = SQLAlchemy()
 class User(db.Model):
     __tablename__ = 'users'
     phone = db.Column(db.String(20), primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
+    name = db.Column(db.String(50), nullable=False, index=True)
     created_at = db.Column(db.DateTime, default=datetime.now)
     min_commission_rate = db.Column(db.Float, default=0)     # 最小分成比例
     max_commission_rate = db.Column(db.Float, default=0)     # 最大分成比例
@@ -28,12 +28,13 @@ class User(db.Model):
 class Device(db.Model):
     __tablename__ = 'devices'
     id = db.Column(db.String(50), primary_key=True)
-    phone = db.Column(db.String(20), db.ForeignKey('users.phone'))
+    phone = db.Column(db.String(20), db.ForeignKey('users.phone'), index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     amount = db.Column(db.Float)                           # 设备金额
     is_returned = db.Column(db.Boolean, default=False)     # 是否返现
     is_paid = db.Column(db.Boolean, default=False)         # 是否打款
     remark = db.Column(db.Text)                            # 备注
     commission_rate = db.Column(db.Integer, default=0)     # 分成比例 
+    first_commission_rate = db.Column(db.Integer, default=0)     # 一级分成比例 
     
     yesterday_income = db.Column(db.Float, default=0)    # 昨日收益

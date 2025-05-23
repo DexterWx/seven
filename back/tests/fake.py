@@ -32,6 +32,9 @@ def generate_device_id():
 def generate_fake_users(count=50):
     """生成假用户数据"""
     users = []
+    # 用于记录每个用户的直接下线数量
+    first_level_counts = defaultdict(int)
+    
     for i in range(count):
         # 生成手机号
         phone = f"1{random.choice(['3', '5', '7', '8', '9'])}{''.join(random.choices('0123456789', k=9))}"
@@ -58,14 +61,22 @@ def generate_fake_users(count=50):
             superior_phone=superior.phone if superior else None,
             superior_name=superior.name if superior else None,
             unwithdrawn_amount=random.uniform(0, 10000),
-            withdrawn_amount=random.uniform(0, 50000),
+            withdrawn_amount=0,
             yesterday_income=random.uniform(0, 1000),
             month_income=random.uniform(0, 10000),
             team_yesterday_income=random.uniform(0, 5000),
             team_month_income=random.uniform(0, 50000),
-            first_level_count=random.randint(0, 10)
+            first_level_count=0  # 初始化为0，后面再更新
         )
         users.append(user)
+        
+        # 如果有上级，更新上级的直接下线数量
+        if superior:
+            first_level_counts[superior.phone] += 1
+    
+    # 更新每个用户的直接下线数量
+    for user in users:
+        user.first_level_count = first_level_counts[user.phone]
     
     return users
 
@@ -84,6 +95,7 @@ def generate_devices(users):
                 is_paid=False,      # 初始状态为未打款
                 remark=f"测试设备 {random.randint(1, 100)}",
                 commission_rate=random.randint(5, 20),
+                first_commission_rate=0.1,
                 yesterday_income=random.uniform(0, 5)
             )
             devices.append(device)

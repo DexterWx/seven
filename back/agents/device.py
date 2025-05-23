@@ -7,9 +7,21 @@ def get_all_devices(page=1, per_page=10, phone=None, sort_field=None, sort_order
         # 构建基础查询
         query = Device.query
 
-        # 如果指定了手机号，只返回该用户的设备
+        # 如果指定了手机号，进行模糊搜索
         if phone:
-            query = query.filter(Device.phone == phone)
+            # 先查找匹配的用户
+            users = User.query.filter(User.phone.like(f'%{phone}%')).all()
+            user_phones = [user.phone for user in users]
+            if user_phones:
+                query = query.filter(Device.phone.in_(user_phones))
+            else:
+                # 如果没有找到匹配的用户，返回空结果
+                return {
+                    'items': [],
+                    'total': 0,
+                    'page': page,
+                    'per_page': per_page
+                }
 
         # 处理排序
         if sort_field and sort_order and sort_field.strip() and sort_order.strip():

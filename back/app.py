@@ -32,7 +32,16 @@ with app.app_context():
 def get_devices():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
-    return jsonify(device.get_all_devices(page, per_page))
+    phone = request.args.get('phone')
+    sort_field = request.args.get('sort_field')
+    sort_order = request.args.get('sort_order')
+    return jsonify(device.get_all_devices(
+        page=page,
+        per_page=per_page,
+        phone=phone,
+        sort_field=sort_field,
+        sort_order=sort_order
+    ))
 
 @app.route('/api/devices', methods=['POST'])
 def add_device():
@@ -79,13 +88,17 @@ def get_users():
         superior_phone = request.args.get('superior_phone')
         sort_field = request.args.get('sort_field')
         sort_order = request.args.get('sort_order')
+        phone = request.args.get('phone')
+        name = request.args.get('name')
 
         result = user.get_all_users(
             page=page,
             per_page=per_page,
             superior_phone=superior_phone,
             sort_field=sort_field,
-            sort_order=sort_order
+            sort_order=sort_order,
+            phone=phone,
+            name=name
         )
         
         if result is None:
@@ -126,6 +139,21 @@ def login():
     if success:
         return jsonify({'success': True, 'data': result})
     return jsonify({'success': False, 'message': result})
+
+@app.route('/api/users/<phone>/withdraw', methods=['POST'])
+def withdraw_user(phone):
+    """用户提现"""
+    try:
+        data = request.get_json()
+        amount = data.get('amount', 0)
+        if amount <= 0:
+            return jsonify({'success': False, 'message': '提现金额必须大于0'}), 400
+            
+        success, message = user.withdraw_user(phone, amount)
+        return jsonify({'success': success, 'message': message})
+    except Exception as e:
+        print(f"Error in withdraw_user: {str(e)}")
+        return jsonify({'success': False, 'message': '提现失败'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True) 
