@@ -1,0 +1,41 @@
+<!--pages/settings/settings.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="back-btn" bindtap="navigateBack">
+      <text class="back-icon">←</text>
+      <text class="back-text">返回</text>
+    </view>
+    <view class="page-title">设置</view>
+  </view>
+
+  <view class="card-list">
+    <view class="card" bindtap="showPasswordModal">
+      <view class="card-title">修改密码</view>
+    </view>
+  </view>
+
+  <!-- 修改密码弹窗 -->
+  <view class="modal" wx:if="{{showPasswordModal}}">
+    <view class="modal-content">
+      <view class="modal-title">修改密码</view>
+      <view class="modal-body">
+        <view class="input-group">
+          <view class="input-label">原密码</view>
+          <input class="modal-input" placeholder="请输入原密码" value="{{oldPassword}}" bindinput="onOldPasswordInput" password/>
+        </view>
+        <view class="input-group">
+          <view class="input-label">新密码</view>
+          <input class="modal-input" placeholder="请输入新密码" value="{{newPassword}}" bindinput="onNewPasswordInput" password/>
+        </view>
+        <view class="input-group">
+          <view class="input-label">确认新密码</view>
+          <input class="modal-input" placeholder="请再次输入新密码" value="{{confirmPassword}}" bindinput="onConfirmPasswordInput" password/>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="cancelChangePassword">取消</button>
+        <button class="modal-btn confirm" bindtap="confirmChangePassword">确定</button>
+      </view>
+    </view>
+  </view>
+</view> 

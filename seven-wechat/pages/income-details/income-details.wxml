@@ -1,0 +1,18 @@
+<!--income-details.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="back-btn" bindtap="backToHome">
+      <text class="back-icon">←</text>
+      <text class="back-text">返回</text>
+    </view>
+    <view class="page-title">收益明细</view>
+  </view>
+  
+  <view class="details-card">
+    <view class="details-title">明细记录</view>
+    <view class="placeholder">
+      <text class="placeholder-text">明细功能开发中...</text>
+      <text class="placeholder-desc">即将为您展示详细的收益记录</text>
+    </view>
+  </view>
+</view> 

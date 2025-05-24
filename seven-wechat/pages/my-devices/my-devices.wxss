@@ -1,0 +1,105 @@
+/* my-devices.wxss */
+page {
+  height: 100vh;
+  background: #f5f5f5;
+}
+
+.container {
+  height: 100vh;
+  width: 100%;
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  padding: 20rpx;
+  padding-top: 60rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  padding: 10rpx;
+}
+
+.back-icon {
+  font-size: 32rpx;
+  color: #333;
+  margin-right: 8rpx;
+}
+
+.back-text {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.page-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 32rpx;
+  color: #333;
+  font-weight: bold;
+}
+
+.device-list {
+  position: fixed;
+  top: 120rpx;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 20rpx;
+}
+
+.device-item {
+  background: #fff;
+  margin-bottom: 15rpx;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
+}
+
+.device-item:first-child {
+  margin-top: 20rpx;
+}
+
+.device-id {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 12rpx;
+}
+
+.device-income {
+  font-size: 28rpx;
+  color: #07c160;
+  margin-bottom: 12rpx;
+}
+
+.device-owner {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+}
+
+.device-phone {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.empty-state, .loading-state, .no-more-state {
+  text-align: center;
+  padding: 60rpx 0;
+}
+
+.empty-text, .loading-text, .no-more-text {
+  font-size: 28rpx;
+  color: #999;
+} 

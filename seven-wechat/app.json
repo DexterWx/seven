@@ -2,7 +2,13 @@
   "pages": [
     "pages/login/login",
     "pages/index/index",
-    "pages/mine/mine"
+    "pages/mine/mine",
+    "pages/withdraw-details/withdraw-details",
+    "pages/income-details/income-details",
+    "pages/my-devices/my-devices",
+    "pages/subordinate-devices/subordinate-devices",
+    "pages/settings/settings",
+    "pages/payment-info/payment-info"
   ],
   "window": {
     "backgroundTextStyle": "light",

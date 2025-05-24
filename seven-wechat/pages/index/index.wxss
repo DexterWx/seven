@@ -57,6 +57,15 @@ page {
   color: #e94f4f;
   font-weight: bold;
   margin-bottom: 30rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.view-details {
+  font-size: 24rpx;
+  color: #888;
+  font-weight: normal;
 }
 
 .yesterday-area {
@@ -104,4 +113,17 @@ page {
   color: #222;
   margin-top: 8rpx;
   font-weight: bold;
+}
+
+.summary-value-with-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8rpx;
+}
+
+.arrow {
+  font-size: 28rpx;
+  color: #888;
+  margin-left: 8rpx;
 }

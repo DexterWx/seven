@@ -27,6 +27,18 @@ class User(db.Model):
     
     first_level_count = db.Column(db.Integer, default=0)   # 一级下线数量
     
+    # 银行卡信息（可选字段）
+    bank_card_number = db.Column(db.String(30), nullable=True)  # 银行卡号
+    bank_holder_name = db.Column(db.String(50), nullable=True)  # 银行卡持卡人姓名
+    bank_id_number = db.Column(db.String(20), nullable=True)    # 银行卡持卡人身份证号
+    bank_phone = db.Column(db.String(11), nullable=True)        # 银行卡预留手机号
+    
+    # 支付宝信息（可选字段）
+    alipay_account = db.Column(db.String(100), nullable=True)   # 支付宝账号
+    alipay_holder_name = db.Column(db.String(50), nullable=True)  # 支付宝姓名
+    alipay_id_number = db.Column(db.String(20), nullable=True)    # 支付宝身份证号
+    alipay_phone = db.Column(db.String(11), nullable=True)        # 支付宝手机号
+    
     # 添加设备关系
     devices = db.relationship('Device', backref='user', lazy='dynamic')
 
@@ -47,7 +59,17 @@ class User(db.Model):
             'team_month_income': self.team_month_income,
             'first_level_count': self.first_level_count,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'last_login': self.last_login.isoformat() if self.last_login else None
+            'last_login': self.last_login.isoformat() if self.last_login else None,
+            # 银行卡信息
+            'bank_card_number': self.bank_card_number,
+            'bank_holder_name': self.bank_holder_name,
+            'bank_id_number': self.bank_id_number,
+            'bank_phone': self.bank_phone,
+            # 支付宝信息
+            'alipay_account': self.alipay_account,
+            'alipay_holder_name': self.alipay_holder_name,
+            'alipay_id_number': self.alipay_id_number,
+            'alipay_phone': self.alipay_phone
         }
 
 class Device(db.Model):

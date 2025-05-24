@@ -291,5 +291,206 @@ def wechat_get_user_by_phone(phone):
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/wechat/users/<phone>/devices/count', methods=['GET'])
+def wechat_get_my_device_count(phone):
+    """小程序获取我的设备数量"""
+    try:
+        success, count = device.get_my_device_count(phone)
+        if success:
+            return jsonify({'success': True, 'count': count})
+        return jsonify({'success': False, 'message': '获取设备数量失败'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/wechat/users/<phone>/subordinate-devices/count', methods=['GET'])
+def wechat_get_subordinate_device_count(phone):
+    """小程序获取下线设备数量"""
+    try:
+        success, count = device.get_subordinate_device_count(phone)
+        if success:
+            return jsonify({'success': True, 'count': count})
+        return jsonify({'success': False, 'message': '获取下线设备数量失败'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/wechat/users/<phone>/devices', methods=['GET'])
+def wechat_get_my_devices(phone):
+    """小程序获取我的设备列表"""
+    try:
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 10))
+        
+        success, result = device.get_my_devices(phone, page, per_page)
+        if success:
+            return jsonify({'success': True, **result})
+        return jsonify({'success': False, 'message': '获取设备列表失败'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/wechat/users/<phone>/subordinate-devices', methods=['GET'])
+def wechat_get_subordinate_devices(phone):
+    """小程序获取下线设备列表"""
+    try:
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 10))
+        
+        success, result = device.get_subordinate_devices(phone, page, per_page)
+        if success:
+            return jsonify({'success': True, **result})
+        return jsonify({'success': False, 'message': '获取下线设备列表失败'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+# 小程序绑定上线接口
+@app.route('/api/wechat/users/bind-superior', methods=['POST'])
+def wechat_bind_superior():
+    """小程序绑定上线"""
+    try:
+        data = request.get_json()
+        phone = data.get('phone')
+        superior_phone = data.get('superior_phone')
+        
+        if not phone or not superior_phone:
+            return jsonify({'success': False, 'message': '缺少必要参数'}), 400
+        
+        # 检查用户是否存在
+        user_obj = User.query.filter_by(phone=phone).first()
+        if not user_obj:
+            return jsonify({'success': False, 'message': '用户不存在'}), 404
+        
+        # 检查是否已经绑定上线
+        if user_obj.superior_phone:
+            return jsonify({'success': False, 'message': '已绑定上线，不可修改'}), 400
+        
+        # 检查上线用户是否存在
+        superior_user = User.query.filter_by(phone=superior_phone).first()
+        if not superior_user:
+            return jsonify({'success': False, 'message': '上线用户不存在'}), 404
+        
+        # 不能绑定自己
+        if phone == superior_phone:
+            return jsonify({'success': False, 'message': '不能绑定自己'}), 400
+        
+        # 更新用户上线信息
+        user_obj.superior_phone = superior_phone
+        user_obj.superior_name = superior_user.name
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': '绑定成功'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+# 小程序修改密码接口
+@app.route('/api/wechat/users/change-password', methods=['POST'])
+def wechat_change_password():
+    """小程序修改密码"""
+    try:
+        data = request.get_json()
+        phone = data.get('phone')
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
+        
+        if not all([phone, old_password, new_password]):
+            return jsonify({'success': False, 'message': '缺少必要参数'}), 400
+        
+        # 检查用户是否存在
+        user_obj = User.query.filter_by(phone=phone).first()
+        if not user_obj:
+            return jsonify({'success': False, 'message': '用户不存在'}), 404
+        
+        # 验证原密码
+        if user_obj.password != old_password:
+            return jsonify({'success': False, 'message': '原密码错误'}), 400
+        
+        # 检查新密码长度
+        if len(new_password) < 6:
+            return jsonify({'success': False, 'message': '新密码长度至少6位'}), 400
+        
+        # 更新密码
+        user_obj.password = new_password
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': '密码修改成功'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+# 小程序获取结算信息接口
+@app.route('/api/wechat/users/<phone>/payment-info', methods=['GET'])
+def wechat_get_payment_info(phone):
+    """小程序获取结算信息"""
+    try:
+        user_obj = User.query.filter_by(phone=phone).first()
+        if not user_obj:
+            return jsonify({'success': False, 'message': '用户不存在'}), 404
+        
+        payment_info = {
+            'bank_card': {
+                'card_number': user_obj.bank_card_number,
+                'holder_name': user_obj.bank_holder_name,
+                'id_number': user_obj.bank_id_number,
+                'phone': user_obj.bank_phone
+            },
+            'alipay': {
+                'account': user_obj.alipay_account,
+                'holder_name': user_obj.alipay_holder_name,
+                'id_number': user_obj.alipay_id_number,
+                'phone': user_obj.alipay_phone
+            }
+        }
+        
+        return jsonify({'success': True, 'data': payment_info})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+# 小程序更新银行卡信息接口
+@app.route('/api/wechat/users/<phone>/bank-card', methods=['PUT'])
+def wechat_update_bank_card(phone):
+    """小程序更新银行卡信息"""
+    try:
+        data = request.get_json()
+        
+        user_obj = User.query.filter_by(phone=phone).first()
+        if not user_obj:
+            return jsonify({'success': False, 'message': '用户不存在'}), 404
+        
+        # 更新银行卡信息
+        user_obj.bank_card_number = data.get('card_number')
+        user_obj.bank_holder_name = data.get('holder_name')
+        user_obj.bank_id_number = data.get('id_number')
+        user_obj.bank_phone = data.get('phone')
+        
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': '银行卡信息更新成功'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+# 小程序更新支付宝信息接口
+@app.route('/api/wechat/users/<phone>/alipay', methods=['PUT'])
+def wechat_update_alipay(phone):
+    """小程序更新支付宝信息"""
+    try:
+        data = request.get_json()
+        
+        user_obj = User.query.filter_by(phone=phone).first()
+        if not user_obj:
+            return jsonify({'success': False, 'message': '用户不存在'}), 404
+        
+        # 更新支付宝信息
+        user_obj.alipay_account = data.get('account')
+        user_obj.alipay_holder_name = data.get('holder_name')
+        user_obj.alipay_id_number = data.get('id_number')
+        user_obj.alipay_phone = data.get('phone')
+        
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': '支付宝信息更新成功'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True) 

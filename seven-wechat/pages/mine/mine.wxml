@@ -1,9 +1,81 @@
 <!--pages/mine/mine.wxml-->
 <view class="container">
-  <view class="avatar-area">
-    <image class="avatar" src="/assets/avatar-default.png" mode="aspectFill"></image>
-    <view class="username">未登录</view>
+  <!-- 用户信息区域 -->
+  <view class="user-header">
+    <view class="avatar-section">
+      <image class="avatar" src="/assets/avatar-default.png" mode="aspectFill"></image>
+      <view class="user-info">
+        <view class="user-name">{{userName}}</view>
+        <view class="user-phone">{{userPhone}}</view>
+      </view>
+    </view>
   </view>
-  <view class="desc">这里是“我的”页面，可以展示用户信息、设置等。</view>
-  <button class="logout-btn" bindtap="logout">退出登录</button>
+
+  <!-- 我的服务 -->
+  <view class="services-section">
+    <view class="service-item" bindtap="goToSettings">
+      <view class="service-icon settings-icon">
+        <text class="icon">⚙️</text>
+      </view>
+      <view class="service-info">
+        <view class="service-name">设置</view>
+      </view>
+      <view class="service-arrow">></view>
+    </view>
+
+    <view class="service-item" bindtap="bindSuperior">
+      <view class="service-icon bind-icon">
+        <text class="icon">👥</text>
+      </view>
+      <view class="service-info">
+        <view class="service-name">{{superiorPhone ? '上线电话：' + superiorPhone : '绑定上线'}}</view>
+      </view>
+      <view class="service-arrow" wx:if="{{!superiorPhone}}">></view>
+    </view>
+
+    <view class="service-item" bindtap="contactUs">
+      <view class="service-icon contact-icon">
+        <text class="icon">📞</text>
+      </view>
+      <view class="service-info">
+        <view class="service-name">联系我们</view>
+        <view class="service-desc">13940598165</view>
+      </view>
+      <view class="service-arrow">></view>
+    </view>
+
+    <view class="service-item" bindtap="goToPayment">
+      <view class="service-icon payment-icon">
+        <text class="icon">💳</text>
+      </view>
+      <view class="service-info">
+        <view class="service-name">结算信息</view>
+      </view>
+      <view class="service-arrow">></view>
+    </view>
+
+    <view class="service-item" bindtap="logout">
+      <view class="service-icon logout-icon">
+        <text class="icon">🚪</text>
+      </view>
+      <view class="service-info">
+        <view class="service-name">退出登录</view>
+      </view>
+      <view class="service-arrow">></view>
+    </view>
+  </view>
+
+  <!-- 绑定上线弹窗 -->
+  <view class="modal" wx:if="{{showBindModal}}">
+    <view class="modal-content">
+      <view class="modal-title">绑定上线</view>
+      <view class="modal-body">
+        <input class="modal-input" placeholder="请输入上线电话" value="{{inputPhone}}" bindinput="onPhoneInput" type="number"/>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="cancelBind">取消</button>
+        <button class="modal-btn confirm" bindtap="confirmBind">确定</button>
+      </view>
+    </view>
+  </view>
 </view>

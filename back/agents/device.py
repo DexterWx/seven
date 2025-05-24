@@ -194,4 +194,123 @@ def pay_device(device_id):
         return True, "打款状态更新成功"
     except Exception as e:
         db.session.rollback()
-        return False, str(e) 
+        return False, str(e)
+
+def get_my_device_count(phone):
+    """获取我的设备数量"""
+    try:
+        count = Device.query.filter_by(phone=phone).count()
+        return True, count
+    except Exception as e:
+        print(f"Error in get_my_device_count: {str(e)}")
+        return False, 0
+
+def get_subordinate_device_count(phone):
+    """获取下线设备数量"""
+    try:
+        # 先在用户库里找到所有上级phone是我的phone的用户
+        subordinates = User.query.filter_by(superior_phone=phone).all()
+        subordinate_phones = [user.phone for user in subordinates]
+        
+        if not subordinate_phones:
+            return True, 0
+        
+        # 去设备库里找到所有phone在这些用户phone中的设备
+        count = Device.query.filter(Device.phone.in_(subordinate_phones)).count()
+        return True, count
+    except Exception as e:
+        print(f"Error in get_subordinate_device_count: {str(e)}")
+        return False, 0
+
+def get_my_devices(phone, page=1, per_page=10):
+    """获取我的设备列表（分页）"""
+    try:
+        # 构建查询
+        query = Device.query.filter_by(phone=phone)
+        
+        # 获取总数
+        total = query.count()
+        
+        # 分页查询
+        devices = query.offset((page - 1) * per_page).limit(per_page).all()
+        
+        result = []
+        
+        # 获取用户信息
+        user = User.query.filter_by(phone=phone).first()
+        user_name = user.name if user else phone
+        
+        for device in devices:
+            result.append({
+                'id': device.id,
+                'device_id': device.device_id,
+                'phone': device.phone,
+                'user_name': user_name,
+                'yesterday_income': (device.yesterday_income or 0),
+                'amount': device.amount,
+                'is_returned': device.is_returned,
+                'is_paid': device.is_paid,
+                'created_at': device.created_at.isoformat() if device.created_at else None
+            })
+        
+        return True, {
+            'data': result,
+            'total': total,
+            'page': page,
+            'per_page': per_page
+        }
+    except Exception as e:
+        print(f"Error in get_my_devices: {str(e)}")
+        return False, []
+
+def get_subordinate_devices(phone, page=1, per_page=10):
+    """获取下线设备列表（分页）"""
+    try:
+        # 先找到所有下线用户
+        subordinates = User.query.filter_by(superior_phone=phone).all()
+        subordinate_phones = [user.phone for user in subordinates]
+        
+        if not subordinate_phones:
+            return True, {
+                'data': [],
+                'total': 0,
+                'page': page,
+                'per_page': per_page
+            }
+        
+        # 构建查询
+        query = Device.query.filter(Device.phone.in_(subordinate_phones))
+        
+        # 获取总数
+        total = query.count()
+        
+        # 分页查询
+        devices = query.offset((page - 1) * per_page).limit(per_page).all()
+        
+        result = []
+        
+        # 构建用户名映射
+        user_map = {user.phone: user.name for user in subordinates}
+        
+        for device in devices:
+            result.append({
+                'id': device.id,
+                'device_id': device.device_id,
+                'phone': device.phone,
+                'user_name': user_map.get(device.phone, device.phone),
+                'yesterday_income': (device.yesterday_income or 0),
+                'amount': device.amount,
+                'is_returned': device.is_returned,
+                'is_paid': device.is_paid,
+                'created_at': device.created_at.isoformat() if device.created_at else None
+            })
+        
+        return True, {
+            'data': result,
+            'total': total,
+            'page': page,
+            'per_page': per_page
+        }
+    except Exception as e:
+        print(f"Error in get_subordinate_devices: {str(e)}")
+        return False, [] 

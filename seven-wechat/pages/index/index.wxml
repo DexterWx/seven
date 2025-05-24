@@ -1,5 +1,5 @@
 <!--index.wxml-->
-<navigation-bar title="Weixin" back="{{false}}" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="七流量" back="{{false}}" color="black" background="#FFF"></navigation-bar>
 <view class="header-bg">
   <view class="user-info">
     <text class="user-name">{{userName}}</text>
@@ -7,7 +7,10 @@
 </view>
 
 <view class="card">
-  <view class="card-title">收益统计</view>
+  <view class="card-title">
+    <text>收益统计</text>
+    <text class="view-details" bindtap="goToDetails">查看明细 ></text>
+  </view>
   <view class="yesterday-area">
     <view class="yesterday-label">昨日收益(元)</view>
     <view class="yesterday-value">{{yesterdayIncome}}</view>
@@ -18,9 +21,39 @@
       <view class="summary-label">本月收益(元)</view>
       <view class="summary-value">{{monthIncome}}</view>
     </view>
-    <view class="summary-item">
+    <view class="summary-item" bindtap="goToWithdrawDetails">
       <view class="summary-label">总收益(元)</view>
-      <view class="summary-value">{{totalIncome}}</view>
+      <view class="summary-value-with-arrow">
+        <text class="summary-value">{{totalIncome}}</text>
+        <text class="arrow">></text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<view class="card">
+  <view class="card-title">
+    <text>团队管理</text>
+  </view>
+  <view class="yesterday-area">
+    <view class="yesterday-label">终端数量(个)</view>
+    <view class="yesterday-value">{{totalDevices}}</view>
+  </view>
+  <view class="divider"></view>
+  <view class="summary-row">
+    <view class="summary-item" bindtap="goToMyDevices">
+      <view class="summary-label">我的终端(个)</view>
+      <view class="summary-value-with-arrow">
+        <text class="summary-value">{{myDevices}}</text>
+        <text class="arrow">></text>
+      </view>
+    </view>
+    <view class="summary-item" bindtap="goToSubordinateDevices">
+      <view class="summary-label">下线终端(个)</view>
+      <view class="summary-value-with-arrow">
+        <text class="summary-value">{{subordinateDevices}}</text>
+        <text class="arrow">></text>
+      </view>
     </view>
   </view>
 </view>
