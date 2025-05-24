@@ -30,7 +30,8 @@ def get_all_devices(page=1, per_page=10, phone=None, sort_field=None, sort_order
                 'amount': Device.amount,
                 'is_returned': Device.is_returned,
                 'is_paid': Device.is_paid,
-                'created_at': Device.created_at
+                'created_at': Device.created_at,
+                'yesterday_income': Device.yesterday_income
             }
             
             if sort_field in allowed_sort_fields:
@@ -58,6 +59,7 @@ def get_all_devices(page=1, per_page=10, phone=None, sort_field=None, sort_order
             user = User.query.get(device.phone)
             items.append({
                 'id': device.id,
+                'device_id': device.device_id,
                 'phone': device.phone,
                 'user_name': user.name if user else None,
                 'amount': device.amount,
@@ -65,6 +67,8 @@ def get_all_devices(page=1, per_page=10, phone=None, sort_field=None, sort_order
                 'is_paid': device.is_paid,
                 'remark': device.remark,
                 'commission_rate': device.commission_rate,
+                'first_commission_rate': device.first_commission_rate,
+                'yesterday_income': device.yesterday_income,
                 'created_at': device.created_at.isoformat() if device.created_at else None
             })
 
@@ -85,12 +89,12 @@ def get_all_devices(page=1, per_page=10, phone=None, sort_field=None, sort_order
 
 def update_device_phone(device_id, phone):
     """更新设备所属人电话"""
-    device = Device.query.get(device_id)
+    device = Device.query.filter_by(device_id=device_id).first()
     if not device:
         return False, "设备不存在"
     
     # 检查用户是否存在
-    user = User.query.get(phone)
+    user = User.query.filter_by(phone=phone).first()
     if not user:
         return False, "用户不存在"
     
@@ -104,7 +108,7 @@ def update_device_phone(device_id, phone):
 
 def update_device_commission(device_id, commission_rate):
     """更新设备分成比例"""
-    device = Device.query.get(device_id)
+    device = Device.query.filter_by(device_id=device_id).first()
     if not device:
         return False, "设备不存在"
     
@@ -122,7 +126,7 @@ def update_device_commission(device_id, commission_rate):
 def update_device_return_status(device_id, is_returned):
     """更新设备返现状态"""
     try:
-        device = Device.query.get(device_id)
+        device = Device.query.filter_by(device_id=device_id).first()
         if not device:
             return False, "设备不存在"
             
@@ -137,7 +141,7 @@ def update_device_return_status(device_id, is_returned):
 def add_device(data):
     """添加新设备"""
     # 检查设备ID是否已存在
-    if Device.query.get(data['id']):
+    if Device.query.get(data['device_id']):
         return False, "设备ID已存在"
     
     # 检查用户是否存在
@@ -147,11 +151,12 @@ def add_device(data):
             return False, "用户不存在"
     
     device = Device(
-        id=data['id'],
+        device_id=data['device_id'],
         phone=data.get('phone'),
         amount=data['amount'],
         remark=data.get('remark', ''),
-        commission_rate=data.get('commission_rate', 0)
+        commission_rate=data.get('commission_rate', 0),
+        first_commission_rate=data.get('first_commission_rate', 0)
     )
     
     try:
@@ -164,7 +169,7 @@ def add_device(data):
 
 def delete_device(device_id):
     """删除设备"""
-    device = Device.query.get(device_id)
+    device = Device.query.filter_by(device_id=device_id).first()
     if not device:
         return False, "设备不存在"
     
@@ -179,7 +184,7 @@ def delete_device(device_id):
 def pay_device(device_id):
     """设备打款"""
     try:
-        device = Device.query.get(device_id)
+        device = Device.query.filter_by(device_id=device_id).first()
         if not device:
             return False, "设备不存在"
             

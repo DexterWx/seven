@@ -19,7 +19,7 @@
     </div>
     
     <el-table :data="deviceList" style="width: 100%" v-loading="loading">
-      <el-table-column prop="id" label="设备ID" width="180" />
+      <el-table-column prop="device_id" label="设备ID" width="180" />
       <el-table-column prop="phone" label="所属人电话" width="180" />
       <el-table-column prop="created_at" label="录入时间" width="180">
         <template #default="scope">
@@ -94,7 +94,7 @@
     <el-dialog v-model="addDialogVisible" title="录入设备" width="30%">
       <el-form :model="newDevice" label-width="100px">
         <el-form-item label="设备号">
-          <el-input v-model="newDevice.id" />
+          <el-input v-model="newDevice.device_id" />
         </el-form-item>
         <el-form-item label="设备金额">
           <el-input v-model="newDevice.amount" type="number" />
@@ -181,7 +181,7 @@ const total = ref(0)
 
 // 新设备表单
 const newDevice = ref({
-  id: '',
+  device_id: '',
   amount: '',
   remark: ''
 })
@@ -244,7 +244,7 @@ const fetchDeviceList = async () => {
 const showAddDialog = () => {
   addDialogVisible.value = true
   newDevice.value = {
-    id: '',
+    device_id: '',
     amount: '',
     remark: ''
   }
@@ -291,14 +291,19 @@ const searchPhone = async () => {
 
 // 确认分配
 const confirmAssign = async () => {
+  if (!assignForm.value.selectedPhone) {
+    ElMessage.warning('请先选择用户')
+    return
+  }
+  
   try {
-    const response = await updateDevicePhone(currentDevice.value.id, assignForm.value.selectedPhone)
+    const response = await updateDevicePhone(currentDevice.value.device_id, assignForm.value.selectedPhone)
     if (response.data.success) {
       ElMessage.success('分配成功')
       assignDialogVisible.value = false
       fetchDeviceList()
     } else {
-      ElMessage.error(response.data.message)
+      ElMessage.error(response.data.message || '分配失败')
     }
   } catch (error) {
     ElMessage.error('分配失败')
@@ -317,7 +322,7 @@ const handleCommission = (row) => {
 const confirmCommission = async () => {
   try {
     const response = await updateDeviceCommission(
-      currentDevice.value.id, 
+      currentDevice.value.device_id, 
       commissionForm.value.rate / 100 // 转换为小数
     )
     if (response.data.success) {
@@ -345,7 +350,7 @@ const handleReturn = (row) => {
     }
   ).then(async () => {
     try {
-      const response = await updateDeviceReturnStatus(row.id, !row.is_returned)
+      const response = await updateDeviceReturnStatus(row.device_id, !row.is_returned)
       if (response.data.success) {
         ElMessage.success(`${row.is_returned ? '取消' : '设置'}返现成功`)
         fetchDeviceList()
@@ -371,7 +376,7 @@ const handleDelete = (row) => {
     }
   ).then(async () => {
     try {
-      const response = await axios.delete(`/devices/${row.id}`)
+      const response = await axios.delete(`/devices/${row.device_id}`)
       if (response.data.success) {
         ElMessage.success('删除成功')
         fetchDeviceList()
@@ -410,7 +415,7 @@ const handlePay = (row) => {
     }
   ).then(async () => {
     try {
-      const response = await payDevice(row.id)
+      const response = await payDevice(row.device_id)
       if (response.data.success) {
         ElMessage.success(`${row.is_paid ? '取消' : '设置'}打款成功`)
         fetchDeviceList()

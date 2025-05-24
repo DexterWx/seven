@@ -70,4 +70,17 @@ htmlcov/
 
 # Misc
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# 微信小程序相关
+seven-wechat/miniprogram_npm/
+seven-wechat/dist/
+seven-wechat/node_modules/
+seven-wechat/.DS_Store
+seven-wechat/project.private.config.json
+seven-wechat/.idea/
+seven-wechat/.vscode/
+seven-wechat/.svn/
+seven-wechat/.eslintcache
+seven-wechat/.temp/
+seven-wechat/.cache/ 

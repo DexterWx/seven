@@ -2,6 +2,7 @@ from sqlalchemy import or_
 from datetime import datetime, timedelta
 from .qiniu import QiniuDeviceClient
 from models import User, Device, db
+import hashlib
 
 def search_users_by_phone(phone):
     """模糊搜索用户电话号码"""
@@ -97,39 +98,21 @@ def get_all_users(page=1, per_page=10, superior_phone=None, sort_field=None, sor
 
 def register_user(data):
     """注册新用户"""
-    from models import db, User
-    # 检查手机号是否已存在
-    if User.query.get(data['phone']):
-        return False, "手机号已存在"
-    
-    # 检查上级是否存在
-    if data.get('superior_phone'):
-        superior = User.query.get(data['superior_phone'])
-        if not superior:
-            return False, "上级不存在"
-        superior_name = superior.name
-    else:
-        superior_name = None
-    
-    # 验证分成比例区间
-    min_rate = float(data.get('min_commission_rate', 0))
-    max_rate = float(data.get('max_commission_rate', 0))
-    if min_rate > max_rate:
-        return False, "最小分成比例不能大于最大分成比例"
-    if min_rate < 0 or max_rate > 20:
-        return False, "分成比例必须在0-20之间"
-    
-    user = User(
-        phone=data['phone'],
-        name=data['name'],
-        password=data['password'],
-        superior_phone=data.get('superior_phone'),
-        superior_name=superior_name,
-        min_commission_rate=min_rate,
-        max_commission_rate=max_rate
-    )
-    
     try:
+        # 检查手机号是否已存在
+        if User.query.filter_by(phone=data['phone']).first():
+            return False, "手机号已存在"
+        
+        # 密码加密
+        password = hashlib.md5(data['password'].encode()).hexdigest()
+        
+        # 创建新用户
+        user = User(
+            phone=data['phone'],
+            password=password,
+            name=data.get('name', data['phone'])  # 如果没有提供名字，使用手机号作为默认名字
+        )
+        
         db.session.add(user)
         db.session.commit()
         return True, "注册成功"
@@ -139,25 +122,28 @@ def register_user(data):
 
 def login_user(phone, password):
     """用户登录"""
-    from models import User
-    user = User.query.get(phone)
-    if not user:
-        return False, "用户不存在"
-    
-    if user.password != password:
-        return False, "密码错误"
-    
-    return True, {
-        'phone': user.phone,
-        'name': user.name,
-        'commission_rate': user.commission_rate,
-        'superior_phone': user.superior_phone
-    }
+    try:
+        # 查找用户
+        user = User.query.filter_by(phone=phone).first()
+        if not user:
+            return False, "用户不存在"
+        
+        # 验证密码
+        if user.password != hashlib.md5(password.encode()).hexdigest():
+            return False, "密码错误"
+        
+        # 更新最后登录时间
+        user.last_login = datetime.now()
+        db.session.commit()
+        
+        return True, user.to_dict()
+    except Exception as e:
+        db.session.rollback()
+        return False, str(e)
 
 def delete_user(phone):
     """删除用户"""
-    from models import db, User
-    user = User.query.get(phone)
+    user = User.query.filter_by(phone=phone).first()
     if not user:
         return False, "用户不存在"
     
@@ -171,37 +157,27 @@ def delete_user(phone):
 
 def update_user(phone, data):
     """更新用户信息"""
-    from models import db, User
-    user = User.query.get(phone)
+    user = User.query.filter_by(phone=phone).first()
     if not user:
         return False, "用户不存在"
     
-    # 验证分成比例区间
-    min_rate = float(data.get('min_commission_rate', 0))
-    max_rate = float(data.get('max_commission_rate', 0))
-    if min_rate > max_rate:
-        return False, "最小分成比例不能大于最大分成比例"
-    if min_rate < 0 or max_rate > 20:
-        return False, "分成比例必须在0-20之间"
-    
     try:
-        # 更新用户信息
-        user.name = data.get('name', user.name)
-        user.min_commission_rate = min_rate
-        user.max_commission_rate = max_rate
-        
-        # 如果提供了上级手机号，验证并更新上级信息
+        # 更新基本信息
+        if 'name' in data:
+            user.name = data['name']
+        if 'min_commission_rate' in data:
+            user.min_commission_rate = data['min_commission_rate']
+        if 'max_commission_rate' in data:
+            user.max_commission_rate = data['max_commission_rate']
+            
+        # 更新上级信息
         if 'superior_phone' in data:
-            if data['superior_phone']:
-                superior = User.query.get(data['superior_phone'])
-                if not superior:
-                    return False, "上级不存在"
-                user.superior_phone = superior.phone
-                user.superior_name = superior.name
-            else:
-                user.superior_phone = None
-                user.superior_name = None
-        
+            superior = User.query.filter_by(phone=data['superior_phone']).first()
+            if not superior:
+                return False, "上级用户不存在"
+            user.superior_phone = superior.phone
+            user.superior_name = superior.name
+            
         db.session.commit()
         return True, "更新成功"
     except Exception as e:
@@ -210,22 +186,26 @@ def update_user(phone, data):
 
 def withdraw_user(phone, amount):
     """用户提现"""
+    user = User.query.filter_by(phone=phone).first()
+    if not user:
+        return False, "用户不存在"
+    
+    if amount > user.unwithdrawn_amount:
+        return False, "提现金额不能大于未提现金额"
+    
     try:
-        user = User.query.get(phone)
-        if not user:
-            return False, '用户不存在'
-            
-        if amount > user.unwithdrawn_amount:
-            return False, '提现金额不能大于未提现金额'
-            
-        # 更新用户提现金额
         user.unwithdrawn_amount -= amount
         user.withdrawn_amount += amount
-        
-        # 提交事务
         db.session.commit()
-        return True, '提现成功'
+        return True, "提现成功"
     except Exception as e:
         db.session.rollback()
-        print(f"Error in withdraw_user: {str(e)}")
-        return False, '提现失败'
+        return False, str(e)
+
+def get_user_info(user_id):
+    """获取用户信息"""
+    user = User.query.filter_by(id=user_id).first()
+    if not user:
+        return False, "用户不存在"
+    
+    return True, user.to_dict()

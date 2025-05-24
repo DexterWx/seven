@@ -1,0 +1,26 @@
+<!--index.wxml-->
+<navigation-bar title="Weixin" back="{{false}}" color="black" background="#FFF"></navigation-bar>
+<view class="header-bg">
+  <view class="user-info">
+    <text class="user-name">{{userName}}</text>
+  </view>
+</view>
+
+<view class="card">
+  <view class="card-title">收益统计</view>
+  <view class="yesterday-area">
+    <view class="yesterday-label">昨日收益(元)</view>
+    <view class="yesterday-value">{{yesterdayIncome}}</view>
+  </view>
+  <view class="divider"></view>
+  <view class="summary-row">
+    <view class="summary-item">
+      <view class="summary-label">本月收益(元)</view>
+      <view class="summary-value">{{monthIncome}}</view>
+    </view>
+    <view class="summary-item">
+      <view class="summary-label">总收益(元)</view>
+      <view class="summary-value">{{totalIncome}}</view>
+    </view>
+  </view>
+</view>

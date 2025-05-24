@@ -88,15 +88,16 @@ def generate_devices(users):
         num_devices = random.randint(1, 3)
         for _ in range(num_devices):
             device = Device(
-                id=f"device_{random.randint(10000, 99999)}",
+                device_id=f"device_{random.randint(10000, 99999)}",
                 phone=user.phone,  # 使用对象属性访问方式
                 amount=100.0,
                 is_returned=False,  # 初始状态为未返现
                 is_paid=False,      # 初始状态为未打款
                 remark=f"测试设备 {random.randint(1, 100)}",
                 commission_rate=0.1,
-                first_commission_rate=0.1,
-                yesterday_income=random.uniform(0, 5)
+                first_commission_rate=random.randint(0, 20),  # 随机生成0-20的一级分成比例
+                yesterday_income=random.uniform(0, 5),  # 随机生成0-5的昨日收益
+                created_at=datetime.utcnow()  # 添加创建时间
             )
             devices.append(device)
     return devices

@@ -1,0 +1,25 @@
+<view class="container">
+  <view class="form-container">
+    <view class="title">{{isLogin ? '登录' : '注册'}}</view>
+    
+    <view class="input-group">
+      <input type="text" placeholder="请输入手机号" bindinput="onPhoneInput" value="{{phone}}" />
+    </view>
+    
+    <view class="input-group">
+      <input type="password" placeholder="请输入密码" bindinput="onPasswordInput" value="{{password}}" />
+    </view>
+    
+    <block wx:if="{{!isLogin}}">
+      <view class="input-group">
+        <input type="text" placeholder="请输入姓名" bindinput="onNameInput" value="{{name}}" />
+      </view>
+    </block>
+    
+    <button class="submit-btn" bindtap="handleSubmit">{{isLogin ? '登录' : '注册'}}</button>
+    
+    <view class="switch-mode" bindtap="switchMode">
+      {{isLogin ? '没有账号？去注册' : '已有账号？去登录'}}
+    </view>
+  </view>
+</view> 

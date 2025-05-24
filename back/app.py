@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models import db
+from models import db, User
 import os
 from agents import user, device, profile
 from config import Config
@@ -25,6 +25,7 @@ os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 # 配置数据库
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = Config.SQLALCHEMY_TRACK_MODIFICATIONS
+app.config['JSON_AS_ASCII'] = False  # 确保 JSON 响应支持中文
 
 # 初始化数据库
 db.init_app(app)
@@ -141,17 +142,44 @@ def search_users():
 
 @app.route('/api/users/register', methods=['POST'])
 def register():
-    data = request.json
-    success, message = user.register_user(data)
-    return jsonify({'success': success, 'message': message})
+    """用户注册"""
+    try:
+        data = request.get_json()
+        # 验证必要字段
+        if not all(k in data for k in ['phone', 'password']):
+            return jsonify({'success': False, 'message': '缺少必要字段'}), 400
+            
+        success, message = user.register_user(data)
+        return jsonify({'success': success, 'message': message})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/users/login', methods=['POST'])
 def login():
-    data = request.json
-    success, result = user.login_user(data['phone'], data['password'])
-    if success:
-        return jsonify({'success': True, 'data': result})
-    return jsonify({'success': False, 'message': result})
+    """用户登录"""
+    try:
+        data = request.get_json()
+        # 验证必要字段
+        if not all(k in data for k in ['phone', 'password']):
+            return jsonify({'success': False, 'message': '缺少必要字段'}), 400
+            
+        success, result = user.login_user(data['phone'], data['password'])
+        if success:
+            return jsonify({'success': True, 'data': result})
+        return jsonify({'success': False, 'message': result}), 401
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/users/<int:user_id>', methods=['GET'])
+def get_user_info(user_id):
+    """获取用户信息"""
+    try:
+        success, result = user.get_user_info(user_id)
+        if success:
+            return jsonify({'success': True, 'data': result})
+        return jsonify({'success': False, 'message': result}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/users/<phone>/withdraw', methods=['POST'])
 def withdraw_user(phone):
@@ -219,6 +247,49 @@ def get_device_total():
     if result is None:
         return jsonify({'error': '获取设备总额失败'}), 500
     return jsonify(result)
+
+# 小程序相关接口
+@app.route('/api/wechat/users/register', methods=['POST'])
+def wechat_register():
+    """小程序用户注册"""
+    try:
+        data = request.get_json()
+        # 验证必要字段
+        if not all(k in data for k in ['phone', 'password']):
+            return jsonify({'success': False, 'message': '缺少必要字段'}), 400
+            
+        success, message = user.register_user(data)
+        return jsonify({'success': success, 'message': message})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/wechat/users/login', methods=['POST'])
+def wechat_login():
+    """小程序用户登录"""
+    try:
+        data = request.get_json()
+        # 验证必要字段
+        if not all(k in data for k in ['phone', 'password']):
+            return jsonify({'success': False, 'message': '缺少必要字段'}), 400
+            
+        success, result = user.login_user(data['phone'], data['password'])
+        if success:
+            return jsonify({'success': True, 'data': result})
+        return jsonify({'success': False, 'message': result}), 401
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/wechat/users/<phone>', methods=['GET'])
+def wechat_get_user_by_phone(phone):
+    """小程序通过手机号获取用户信息"""
+    try:
+        user_obj = User.query.filter_by(phone=phone).first()
+        if not user_obj:
+            return jsonify({'success': False, 'message': '用户不存在'}), 404
+        
+        return jsonify({'success': True, 'data': user_obj.to_dict()})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True) 
