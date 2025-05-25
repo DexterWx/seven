@@ -44,10 +44,11 @@ def generate_fake_users(count=50):
         
         # 生成分成比例区间（默认都是0%-20%）
         min_rate = 0
-        max_rate = 20
+        max_rate = 0.2
         
         # 生成密码（简单起见，使用固定密码）
         password = "123456"
+        password = hashlib.md5(password.encode()).hexdigest()
         
         # 生成上级（随机选择）
         superior = random.choice(users) if users else None
@@ -95,7 +96,7 @@ def generate_devices(users):
                 is_paid=False,      # 初始状态为未打款
                 remark=f"测试设备 {random.randint(1, 100)}",
                 commission_rate=0.1,
-                first_commission_rate=random.randint(0, 20),  # 随机生成0-20的一级分成比例
+                first_commission_rate=0.1,
                 yesterday_income=random.uniform(0, 5),  # 随机生成0-5的昨日收益
                 created_at=datetime.utcnow()  # 添加创建时间
             )

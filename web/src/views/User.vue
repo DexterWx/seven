@@ -45,17 +45,6 @@
     >
       <el-table-column prop="phone" label="手机号" width="150" />
       <el-table-column prop="name" label="姓名" width="120" />
-      <el-table-column label="分成比例" width="120">
-        <template #default="scope">
-          <el-button 
-            type="primary" 
-            link
-            @click="handleEditCommissionRate(scope.row)"
-          >
-            {{ scope.row.min_commission_rate }}% - {{ scope.row.max_commission_rate }}%
-          </el-button>
-        </template>
-      </el-table-column>
       <el-table-column prop="superior_name" label="上级姓名" width="120">
         <template #default="scope">
           {{ scope.row.superior_name || '-' }}
@@ -64,23 +53,6 @@
       <el-table-column prop="superior_phone" label="上级电话" width="150">
         <template #default="scope">
           {{ scope.row.superior_phone || '-' }}
-        </template>
-      </el-table-column>
-      <el-table-column 
-        prop="first_level_count" 
-        label="一级下线" 
-        width="100"
-        sortable="custom"
-      >
-        <template #default="scope">
-          <el-button 
-            type="primary" 
-            link
-            @click="handleViewFirstLevel(scope.row)"
-            :disabled="scope.row.first_level_count === 0"
-          >
-            {{ scope.row.first_level_count || 0 }}
-          </el-button>
         </template>
       </el-table-column>
       <el-table-column 
@@ -106,6 +78,45 @@
             @click="handleEditWithdraw(scope.row)"
           >
             {{ scope.row.withdrawn_amount?.toFixed(2) || '0.00' }}
+          </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column label="分成比例" width="120">
+        <template #default="scope">
+          <el-button 
+            type="primary" 
+            link
+            @click="handleEditCommissionRate(scope.row)"
+          >
+            {{ (scope.row.min_commission_rate * 100).toFixed(0) }}% - {{ (scope.row.max_commission_rate * 100).toFixed(0) }}%
+          </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column 
+        prop="first_level_count" 
+        label="一级下线" 
+        width="100"
+        sortable="custom"
+      >
+        <template #default="scope">
+          <el-button 
+            type="primary" 
+            link
+            @click="handleViewFirstLevel(scope.row)"
+            :disabled="scope.row.first_level_count === 0"
+          >
+            {{ scope.row.first_level_count || 0 }}
+          </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column label="提款信息" width="100">
+        <template #default="scope">
+          <el-button 
+            type="primary" 
+            link
+            @click="handleShowWithdrawInfo(scope.row)"
+          >
+            显示
           </el-button>
         </template>
       </el-table-column>
@@ -287,6 +298,32 @@
       </template>
     </el-dialog>
 
+    <!-- 提款信息对话框 -->
+    <el-dialog
+      v-model="withdrawInfoDialogVisible"
+      title="提款信息"
+      width="700px"
+    >
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-descriptions title="银行卡信息" :column="1" border>
+            <el-descriptions-item label="银行卡号">{{ withdrawInfo.bank_card_number || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="持卡人姓名">{{ withdrawInfo.bank_holder_name || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="身份证号">{{ withdrawInfo.bank_id_number || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="预留手机号">{{ withdrawInfo.bank_phone || '-' }}</el-descriptions-item>
+          </el-descriptions>
+        </el-col>
+        <el-col :span="12">
+          <el-descriptions title="支付宝信息" :column="1" border>
+            <el-descriptions-item label="支付宝账号">{{ withdrawInfo.alipay_account || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="支付宝姓名">{{ withdrawInfo.alipay_holder_name || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="支付宝身份证号">{{ withdrawInfo.alipay_id_number || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="支付宝手机号">{{ withdrawInfo.alipay_phone || '-' }}</el-descriptions-item>
+          </el-descriptions>
+        </el-col>
+      </el-row>
+    </el-dialog>
+
     <!-- 分页 -->
     <div class="pagination-container">
       <el-pagination
@@ -403,6 +440,10 @@ const searchForm = ref({
   phone: '',
   name: ''
 })
+
+// 提款信息对话框相关
+const withdrawInfoDialogVisible = ref(false)
+const withdrawInfo = ref({})
 
 // 获取用户列表
 const fetchUserList = async () => {
@@ -588,9 +629,13 @@ const handleCommissionRateSubmit = async () => {
       return
     }
     
+    // 转换为小数再提交
+    const minRate = min_commission_rate / 100
+    const maxRate = max_commission_rate / 100
+    
     const response = await updateUser(phone, {
-      min_commission_rate,
-      max_commission_rate
+      min_commission_rate: minRate,
+      max_commission_rate: maxRate
     })
     
     if (response.data.success) {
@@ -676,6 +721,21 @@ const handleResetName = () => {
   searchForm.value.name = ''
   currentPage.value = 1
   fetchUserList()
+}
+
+// 处理显示提款信息
+const handleShowWithdrawInfo = (row) => {
+  withdrawInfo.value = {
+    bank_card_number: row.bank_card_number,
+    bank_holder_name: row.bank_holder_name,
+    bank_id_number: row.bank_id_number,
+    bank_phone: row.bank_phone,
+    alipay_account: row.alipay_account,
+    alipay_holder_name: row.alipay_holder_name,
+    alipay_id_number: row.alipay_id_number,
+    alipay_phone: row.alipay_phone,
+  }
+  withdrawInfoDialogVisible.value = true
 }
 
 // 初始化

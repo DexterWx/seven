@@ -67,24 +67,7 @@ def get_all_users(page=1, per_page=10, superior_phone=None, sort_field=None, sor
         users = query.offset((page - 1) * per_page).limit(per_page).all()
 
         # 构建返回数据
-        items = []
-        for user in users:
-            items.append({
-                'phone': user.phone,
-                'name': user.name,
-                'min_commission_rate': user.min_commission_rate,
-                'max_commission_rate': user.max_commission_rate,
-                'superior_name': user.superior_name,
-                'superior_phone': user.superior_phone,
-                'unwithdrawn_amount': user.unwithdrawn_amount,
-                'withdrawn_amount': user.withdrawn_amount,
-                'yesterday_income': user.yesterday_income,
-                'month_income': user.month_income,
-                'team_yesterday_income': user.team_yesterday_income,
-                'team_month_income': user.team_month_income,
-                'first_level_count': user.first_level_count,
-                'created_at': user.created_at.isoformat() if user.created_at else None
-            })
+        items = [user.to_dict() for user in users]
 
         return {
             'items': items,

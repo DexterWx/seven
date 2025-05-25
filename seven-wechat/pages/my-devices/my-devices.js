@@ -7,7 +7,11 @@ Page({
     page: 1,
     per_page: 10,
     loading: false,
-    noMore: false
+    noMore: false,
+    showReleaseConfirmModal: false,
+    releaseDeviceId: '',
+    releaseDeviceIndex: null,
+    releasePhoneInput: ''
   },
 
   onLoad() {
@@ -32,6 +36,7 @@ Page({
     wx.request({
       url: `${API.DEVICE.MY_LIST(phone)}?page=${currentPage}&per_page=${this.data.per_page}`,
       method: 'GET',
+      timeout: 10000, // 设置10秒超时
       success: (res) => {
         if (res.data && res.data.success) {
           const newDevices = res.data.data || [];
@@ -56,10 +61,19 @@ Page({
       fail: (error) => {
         console.error('请求失败:', error);
         this.setData({ loading: false });
-        wx.showToast({
-          title: '网络请求失败',
-          icon: 'none'
-        });
+        
+        // 如果是超时错误，显示更友好的提示
+        if (error.errMsg && error.errMsg.includes('timeout')) {
+          wx.showToast({
+            title: '网络请求超时，请重试',
+            icon: 'none'
+          });
+        } else {
+          wx.showToast({
+            title: '网络请求失败',
+            icon: 'none'
+          });
+        }
       }
     });
   },
@@ -83,6 +97,117 @@ Page({
       fail: () => {
         wx.showToast({
           title: '复制失败',
+          icon: 'none'
+        });
+      }
+    });
+  },
+
+  showReleaseModal(e) {
+    const { id, index } = e.currentTarget.dataset;
+    this.setData({
+      showReleaseConfirmModal: true,
+      releaseDeviceId: id,
+      releaseDeviceIndex: index,
+      releasePhoneInput: ''
+    });
+  },
+
+  cancelRelease() {
+    this.setData({
+      showReleaseConfirmModal: false,
+      releaseDeviceId: '',
+      releaseDeviceIndex: null,
+      releasePhoneInput: ''
+    });
+  },
+
+  onReleasePhoneInput(e) {
+    this.setData({
+      releasePhoneInput: e.detail.value
+    });
+  },
+
+  confirmRelease() {
+    const { releasePhoneInput, releaseDeviceId } = this.data;
+    const currentPhone = wx.getStorageSync('phone');
+
+    if (!releasePhoneInput) {
+      wx.showToast({
+        title: '请输入手机号',
+        icon: 'none'
+      });
+      return;
+    }
+
+    // 先获取目标用户信息
+    wx.request({
+      url: API.USER.GET_BY_PHONE(releasePhoneInput),
+      method: 'GET',
+      success: (res) => {
+        if (res.data && res.data.success) {
+          const targetUser = res.data.data;
+          
+          // 验证是否是当前用户的下线
+          if (targetUser.superior_phone !== currentPhone) {
+            wx.showToast({
+              title: '该用户不是您的下线',
+              icon: 'none'
+            });
+            return;
+          }
+
+          // 验证通过，调用下放接口
+          wx.request({
+            url: API.DEVICE.UPDATE_PHONE(releaseDeviceId),
+            method: 'PUT',
+            data: {
+              phone: releasePhoneInput
+            },
+            success: (res) => {
+              this.setData({
+                showReleaseConfirmModal: false,
+                releaseDeviceId: '',
+                releaseDeviceIndex: null,
+                releasePhoneInput: ''
+              });
+              
+              if (res.data && res.data.success) {
+                wx.showToast({
+                  title: '下放成功',
+                  icon: 'success'
+                });
+                this.loadDevices(); // 重新拉取设备列表
+              } else {
+                wx.showToast({
+                  title: res.data.message || '下放失败',
+                  icon: 'none'
+                });
+              }
+            },
+            fail: (error) => {
+              this.setData({
+                showReleaseConfirmModal: false,
+                releaseDeviceId: '',
+                releaseDeviceIndex: null,
+                releasePhoneInput: ''
+              });
+              wx.showToast({
+                title: '网络错误',
+                icon: 'none'
+              });
+            }
+          });
+        } else {
+          wx.showToast({
+            title: '未找到该用户',
+            icon: 'none'
+          });
+        }
+      },
+      fail: (error) => {
+        wx.showToast({
+          title: '网络错误',
           icon: 'none'
         });
       }

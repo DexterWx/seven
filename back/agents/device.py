@@ -56,7 +56,7 @@ def get_all_devices(page=1, per_page=10, phone=None, sort_field=None, sort_order
         # 构建返回数据
         items = []
         for device in devices:
-            user = User.query.get(device.phone)
+            user = User.query.get(device.phone) if device.phone else None
             items.append({
                 'id': device.id,
                 'device_id': device.device_id,
@@ -112,8 +112,8 @@ def update_device_commission(device_id, commission_rate):
     if not device:
         return False, "设备不存在"
     
-    if not 0 <= commission_rate <= 20:
-        return False, "分成比例必须在0-20之间"
+    if not 0 <= commission_rate <= 1:
+        return False, "分成比例必须在0-1之间"
     
     try:
         device.commission_rate = commission_rate
@@ -144,19 +144,10 @@ def add_device(data):
     if Device.query.get(data['device_id']):
         return False, "设备ID已存在"
     
-    # 检查用户是否存在
-    if data.get('phone'):
-        user = User.query.get(data['phone'])
-        if not user:
-            return False, "用户不存在"
-    
     device = Device(
         device_id=data['device_id'],
-        phone=data.get('phone'),
         amount=data['amount'],
-        remark=data.get('remark', ''),
-        commission_rate=data.get('commission_rate', 0),
-        first_commission_rate=data.get('first_commission_rate', 0)
+        remark=data.get('remark', '')
     )
     
     try:
@@ -241,17 +232,9 @@ def get_my_devices(phone, page=1, per_page=10):
         user_name = user.name if user else phone
         
         for device in devices:
-            result.append({
-                'id': device.id,
-                'device_id': device.device_id,
-                'phone': device.phone,
-                'user_name': user_name,
-                'yesterday_income': (device.yesterday_income or 0),
-                'amount': device.amount,
-                'is_returned': device.is_returned,
-                'is_paid': device.is_paid,
-                'created_at': device.created_at.isoformat() if device.created_at else None
-            })
+            device_dict = device.to_dict()
+            device_dict['user_name'] = user_name
+            result.append(device_dict)
         
         return True, {
             'data': result,
@@ -293,17 +276,9 @@ def get_subordinate_devices(phone, page=1, per_page=10):
         user_map = {user.phone: user.name for user in subordinates}
         
         for device in devices:
-            result.append({
-                'id': device.id,
-                'device_id': device.device_id,
-                'phone': device.phone,
-                'user_name': user_map.get(device.phone, device.phone),
-                'yesterday_income': (device.yesterday_income or 0),
-                'amount': device.amount,
-                'is_returned': device.is_returned,
-                'is_paid': device.is_paid,
-                'created_at': device.created_at.isoformat() if device.created_at else None
-            })
+            device_dict = device.to_dict()
+            device_dict['user_name'] = user_map.get(device.phone, device.phone)
+            result.append(device_dict)
         
         return True, {
             'data': result,

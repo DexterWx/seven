@@ -1,4 +1,5 @@
 const app = getApp()
+import API from '../../config/api'
 
 Page({
   data: {
@@ -9,65 +10,8 @@ Page({
   },
 
   // 返回我的页面
-  backToMine() {
-    wx.navigateBack();
-  },
-
-  // 修改密码
-  changePassword() {
-    const { oldPassword, newPassword, confirmPassword } = this.data
-
-    // 验证输入
-    if (!oldPassword || !newPassword || !confirmPassword) {
-      wx.showToast({
-        title: '请填写完整信息',
-        icon: 'none'
-      })
-      return
-    }
-
-    if (newPassword !== confirmPassword) {
-      wx.showToast({
-        title: '两次输入的新密码不一致',
-        icon: 'none'
-      })
-      return
-    }
-
-    // 调用修改密码接口
-    wx.request({
-      url: `${app.globalData.baseUrl}/api/user/change-password`,
-      method: 'POST',
-      data: {
-        old_password: oldPassword,
-        new_password: newPassword
-      },
-      success: (res) => {
-        if (res.data && res.data.success) {
-          wx.showToast({
-            title: '密码修改成功',
-            icon: 'success'
-          })
-          // 清空输入
-          this.setData({
-            oldPassword: '',
-            newPassword: '',
-            confirmPassword: ''
-          })
-        } else {
-          wx.showToast({
-            title: res.data.message || '修改失败',
-            icon: 'none'
-          })
-        }
-      },
-      fail: () => {
-        wx.showToast({
-          title: '网络错误',
-          icon: 'none'
-        })
-      }
-    })
+  navigateBack() {
+    wx.switchTab({ url: '/pages/mine/mine' });
   },
 
   // 输入原密码
@@ -148,9 +92,10 @@ Page({
 
     // 调用后端接口修改密码
     wx.request({
-      url: `${app.globalData.baseUrl}/api/user/change-password`,
+      url: API.USER.CHANGE_PASSWORD,
       method: 'POST',
       data: {
+        phone: phone,
         old_password: oldPassword,
         new_password: newPassword
       },

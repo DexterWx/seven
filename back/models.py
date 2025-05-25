@@ -15,7 +15,7 @@ class User(db.Model):
     last_login = db.Column(db.DateTime)  # 最后登录时间
     
     min_commission_rate = db.Column(db.Float, default=0)     # 最小分成比例
-    max_commission_rate = db.Column(db.Float, default=0)     # 最大分成比例
+    max_commission_rate = db.Column(db.Float, default=0.2)   # 最大分成比例
     superior_name = db.Column(db.String(100))              # 上级名字
     superior_phone = db.Column(db.String(20), db.ForeignKey('users.phone'), nullable=True, index=True)  # 上级手机号
     unwithdrawn_amount = db.Column(db.Float, default=0)  # 未体现金额
@@ -78,14 +78,14 @@ class Device(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)  # 改为自增ID
     device_id = db.Column(db.String(50), unique=True, index=True)  # 设备唯一标识
-    phone = db.Column(db.String(20), db.ForeignKey('users.phone'), index=True)  # 用户手机号
+    phone = db.Column(db.String(20), db.ForeignKey('users.phone'), default='', index=True)  # 用户手机号
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)  # 创建时间
     amount = db.Column(db.Float)                           # 设备金额
     is_returned = db.Column(db.Boolean, default=False)     # 是否返现
     is_paid = db.Column(db.Boolean, default=False)         # 是否打款
     remark = db.Column(db.Text)                            # 备注
-    commission_rate = db.Column(db.Integer, default=0)     # 分成比例 , 分给平台的
-    first_commission_rate = db.Column(db.Integer, default=0)     # 一级分成比例  分给上级的
+    commission_rate = db.Column(db.Float, default=0.1)   # 分成比例 , 分给平台的
+    first_commission_rate = db.Column(db.Float, default=0)     # 一级分成比例  分给上级的
     
     yesterday_income = db.Column(db.Float, default=0)    # 昨日收益
 

@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models import db, User
+from models import db, User, Device
 import os
 from agents import user, device, profile
 from config import Config
+import hashlib
 
 app = Flask(__name__)
 # 配置 CORS
@@ -167,17 +168,6 @@ def login():
         if success:
             return jsonify({'success': True, 'data': result})
         return jsonify({'success': False, 'message': result}), 401
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/api/users/<int:user_id>', methods=['GET'])
-def get_user_info(user_id):
-    """获取用户信息"""
-    try:
-        success, result = user.get_user_info(user_id)
-        if success:
-            return jsonify({'success': True, 'data': result})
-        return jsonify({'success': False, 'message': result}), 404
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
@@ -374,6 +364,7 @@ def wechat_bind_superior():
         # 更新用户上线信息
         user_obj.superior_phone = superior_phone
         user_obj.superior_name = superior_user.name
+        superior_user.first_level_count += 1
         db.session.commit()
         
         return jsonify({'success': True, 'message': '绑定成功'})
@@ -400,7 +391,7 @@ def wechat_change_password():
             return jsonify({'success': False, 'message': '用户不存在'}), 404
         
         # 验证原密码
-        if user_obj.password != old_password:
+        if user_obj.password != hashlib.md5(old_password.encode()).hexdigest():
             return jsonify({'success': False, 'message': '原密码错误'}), 400
         
         # 检查新密码长度
@@ -408,7 +399,7 @@ def wechat_change_password():
             return jsonify({'success': False, 'message': '新密码长度至少6位'}), 400
         
         # 更新密码
-        user_obj.password = new_password
+        user_obj.password = hashlib.md5(new_password.encode()).hexdigest()
         db.session.commit()
         
         return jsonify({'success': True, 'message': '密码修改成功'})
@@ -455,11 +446,13 @@ def wechat_update_bank_card(phone):
         if not user_obj:
             return jsonify({'success': False, 'message': '用户不存在'}), 404
         
+        print(data)
+        
         # 更新银行卡信息
-        user_obj.bank_card_number = data.get('card_number')
-        user_obj.bank_holder_name = data.get('holder_name')
-        user_obj.bank_id_number = data.get('id_number')
-        user_obj.bank_phone = data.get('phone')
+        user_obj.bank_card_number = data.get('bank_card_number')
+        user_obj.bank_holder_name = data.get('bank_holder_name')
+        user_obj.bank_id_number = data.get('bank_id_number')
+        user_obj.bank_phone = data.get('bank_phone')
         
         db.session.commit()
         
@@ -480,10 +473,10 @@ def wechat_update_alipay(phone):
             return jsonify({'success': False, 'message': '用户不存在'}), 404
         
         # 更新支付宝信息
-        user_obj.alipay_account = data.get('account')
-        user_obj.alipay_holder_name = data.get('holder_name')
-        user_obj.alipay_id_number = data.get('id_number')
-        user_obj.alipay_phone = data.get('phone')
+        user_obj.alipay_account = data.get('alipay_account')
+        user_obj.alipay_holder_name = data.get('alipay_holder_name')
+        user_obj.alipay_id_number = data.get('alipay_id_number')
+        user_obj.alipay_phone = data.get('alipay_phone')
         
         db.session.commit()
         
@@ -491,6 +484,43 @@ def wechat_update_alipay(phone):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
+    
+# 小程序设置分成比例接口
+@app.route('/api/wechat/devices/<device_id>/commission-rate', methods=['PUT'])
+def wechat_set_commission_rate(device_id):
+    """小程序设置分成比例"""
+    try:
+        data = request.get_json()
+        first_commission_rate = data.get('first_commission_rate')
+        
+        if not all([first_commission_rate]):
+            return jsonify({'success': False, 'message': '缺少必要参数'}), 400
+        
+        device_obj = Device.query.filter_by(device_id=device_id).first()
+        if not device_obj:
+            return jsonify({'success': False, 'message': '设备不存在'}), 404
+        
+        device_obj.first_commission_rate = first_commission_rate
+        db.session.commit()
 
+        return jsonify({'success': True, 'message': '分成比例设置成功'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+    
+@app.route('/api/wechat/devices/<device_id>/phone', methods=['PUT'])
+def wechat_update_device_phone(device_id):
+    try:
+        data = request.get_json()
+        phone = data.get('phone')
+        
+        if not phone:
+            return jsonify({'success': False, 'message': '缺少必要参数'}), 400
+        
+        success, message = device.update_device_phone(device_id, phone)
+        return jsonify({'success': success, 'message': message})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+        
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True) 

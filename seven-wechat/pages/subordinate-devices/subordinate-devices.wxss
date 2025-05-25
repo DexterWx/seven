@@ -72,20 +72,20 @@ page {
 
 .device-id {
   font-size: 32rpx;
-  color: #333;
+  color: #999;
   font-weight: bold;
   margin-bottom: 12rpx;
 }
 
 .device-income {
   font-size: 28rpx;
-  color: #07c160;
+  color: #999;
   margin-bottom: 12rpx;
 }
 
 .device-owner {
   font-size: 28rpx;
-  color: #666;
+  color: #999;
   margin-bottom: 12rpx;
 }
 
@@ -102,4 +102,111 @@ page {
 .empty-text, .loading-text, .no-more-text {
   font-size: 28rpx;
   color: #999;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 20rpx;
+  width: 100%;
+  max-width: 600rpx;
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.modal-body {
+  margin-bottom: 40rpx;
+}
+
+.modal-input {
+  border: 2rpx solid #e0e0e0;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 20rpx;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 24rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  border: none;
+}
+
+.modal-btn.cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.modal-btn.confirm {
+  background: #333;
+  color: #fff;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-input.short {
+  width: 120rpx;
+  margin-right: 10rpx;
+}
+
+.percent-sign {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.device-commission {
+  font-size: 28rpx;
+  color: #666;
+  display: flex;
+  align-items: center;
+  margin-top: 4rpx;
+}
+
+.commission-value {
+  color: #007aff;
+  margin-left: 8rpx;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.recycle-btn {
+  margin-left: 20rpx;
+  color: #fff;
+  background: #ff4d4f;
+  border: none;
+  font-size: 24rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 12rpx;
 } 

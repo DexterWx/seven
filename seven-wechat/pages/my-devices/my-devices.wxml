@@ -14,6 +14,9 @@
       <view class="device-income">昨日收益：¥{{item.yesterday_income}}</view>
       <view class="device-owner">姓名：{{item.user_name}}</view>
       <view class="device-phone">电话：{{item.phone}}</view>
+      <view class="device-action">
+        <button class="release-btn" size="mini" data-id="{{item.device_id}}" data-index="{{index}}" bindtap="showReleaseModal">下放</button>
+      </view>
     </view>
     
     <view wx:if="{{devices.length === 0 && !loading}}" class="empty-state">
@@ -28,4 +31,23 @@
       <text class="no-more-text">没有更多数据了</text>
     </view>
   </scroll-view>
+  <!-- 下放确认弹窗 -->
+  <view class="modal" wx:if="{{showReleaseConfirmModal}}">
+    <view class="modal-content">
+      <view class="modal-title">下放设备</view>
+      <view class="modal-body">
+        <input 
+          class="modal-input" 
+          type="number" 
+          placeholder="请输入下线手机号" 
+          value="{{releasePhoneInput}}"
+          bindinput="onReleasePhoneInput"
+        />
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="cancelRelease">取消</button>
+        <button class="modal-btn confirm" bindtap="confirmRelease">确认下放</button>
+      </view>
+    </view>
+  </view>
 </view> 
