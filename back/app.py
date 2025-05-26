@@ -36,6 +36,11 @@ with app.app_context():
     if not os.path.exists(DB_PATH):
         db.create_all()
 
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """健康检查接口"""
+    return jsonify({'status': 'ok'})
+
 # 设备相关接口
 @app.route('/api/devices', methods=['GET'])
 def get_devices():
