@@ -1,5 +1,5 @@
 const BASE_URL = 'http://localhost:5001/api';
-// const BASE_URL = 'http://192.168.40.1:5001/api';
+// const BASE_URL = 'http://8.155.2.114:5001/api';
 
 
 const API = {

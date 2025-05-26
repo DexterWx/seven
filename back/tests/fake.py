@@ -63,10 +63,10 @@ def generate_fake_users(count=50):
             superior_name=superior.name if superior else None,
             unwithdrawn_amount=0,
             withdrawn_amount=0,
-            yesterday_income=random.uniform(0, 1000),
-            month_income=random.uniform(0, 10000),
-            team_yesterday_income=random.uniform(0, 5000),
-            team_month_income=random.uniform(0, 50000),
+            yesterday_income=0,
+            month_income=0,
+            team_yesterday_income=0,
+            team_month_income=0,
             first_level_count=0  # 初始化为0，后面再更新
         )
         users.append(user)
