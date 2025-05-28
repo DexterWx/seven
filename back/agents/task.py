@@ -105,13 +105,12 @@ def get_device_bills_batch():
                         device.yesterday_income = original_amount
                         
                         # 更新历史收益列表
-                        history = device.income_history
-                        history.append({
-                            'date': yesterday_formatted,
-                            'amount': original_amount
-                        })
-                        
-                        device.income_history = history
+                        device.income_history = device.income_history + [
+                            {
+                                'date': yesterday_formatted,
+                                'amount': original_amount
+                            }
+                        ]
                         db.session.commit()
                 
                 print(f"成功处理 {len(batch_devices)} 个设备的账单数据")

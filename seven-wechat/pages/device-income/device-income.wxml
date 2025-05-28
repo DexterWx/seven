@@ -7,12 +7,13 @@
     <text class="nav-title">设备收益明细</text>
   </view>
 
-  <view class="content">
-    <view class="header">
-      <view class="device-info">
-        <text class="device-id">设备号：{{deviceId}}</text>
-      </view>
-    </view>
+  <scroll-view 
+    class="content" 
+    scroll-y="true" 
+    bindscrolltolower="onReachBottom"
+    enable-flex="true"
+  >
+    <text class="device-id">设备号：{{deviceId}}</text>
 
     <view class="income-list">
       <view class="income-item" wx:for="{{incomeList}}" wx:key="date">
@@ -22,11 +23,11 @@
     </view>
 
     <view class="loading" wx:if="{{loading}}">
-      <text>加载中...</text>
+      <text>数据加载中...</text>
     </view>
     
-    <view class="no-more" wx:if="{{noMore}}">
-      <text>没有更多数据了</text>
+    <view class="no-more" wx:if="{{!loading && (noMore || incomeList.length === 0)}}">
+      <text>{{incomeList.length === 0 ? '暂无收益记录' : '已经到底啦'}}</text>
     </view>
-  </view>
+  </scroll-view>
 </view> 

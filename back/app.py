@@ -531,8 +531,13 @@ def wechat_update_device_phone(device_id):
 def wechat_get_income_history(device_id):
     """小程序获取设备收益历史"""
     try:
-        success, result = device.get_income_history(device_id)
-        return jsonify({'success': success, 'data': result})
+        page = int(request.args.get('page', 1))
+        page_size = int(request.args.get('page_size', 10))
+        
+        success, result = device.get_income_history(device_id, page, page_size)
+        if not success:
+            return jsonify({'success': False, 'message': result}), 500
+        return jsonify({'success': True, 'data': result})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 

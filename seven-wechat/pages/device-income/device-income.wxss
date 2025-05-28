@@ -46,25 +46,26 @@
 }
 
 .content {
-  padding-top: 132rpx;
-  padding-left: 20rpx;
-  padding-right: 20rpx;
+  margin-top: 0rpx;
+  position: fixed;
+  top: 132rpx;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
-.header {
+.device-id {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
   background-color: #fff;
   padding: 20rpx;
   margin-bottom: 20rpx;
-  border-radius: 10rpx;
-}
-
-.device-info {
-  font-size: 28rpx;
-  color: #333;
 }
 
 .income-list {
   background-color: #fff;
+  margin: 0 20rpx;
   border-radius: 10rpx;
 }
 

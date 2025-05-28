@@ -14,7 +14,6 @@ Page({
   onShow() {
     // 获取本地存储的手机号
     const phone = wx.getStorageSync('phone');
-    console.log('首页获取到的手机号:', phone);
     
     if (!phone) {
       // 如果没有手机号，跳转到登录页
@@ -35,8 +34,6 @@ Page({
       url: API.USER.INFO(phone),
       method: 'GET',
       success: (res) => {
-        console.log('后端返回的数据:', res.data);
-        
         if (res.data && res.data.success && res.data.data) {
           const user = res.data.data;
           this.setData({

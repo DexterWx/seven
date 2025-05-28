@@ -290,9 +290,36 @@ def get_subordinate_devices(phone, page=1, per_page=10):
         print(f"Error in get_subordinate_devices: {str(e)}")
         return False, [] 
 
-def get_income_history(device_id):
+def get_income_history(device_id, page=1, page_size=10):
     """获取设备收益历史"""
-    device = Device.query.filter_by(device_id=device_id).first()
-    if not device:
-        return False, "设备不存在"
-    return True, device.income_history
+    try:
+        device = Device.query.filter_by(device_id=device_id).first()
+        if not device:
+            return False, "设备不存在"
+        
+        # 获取收益历史列表
+        income_history = device.income_history or []
+        
+        # 计算总数
+        total = len(income_history)
+        
+        # 计算分页
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        
+        # 对历史记录进行倒序排序（最新的在前面）
+        income_history.sort(key=lambda x: x['date'], reverse=True)
+        
+        # 获取当前页的数据
+        current_page_data = income_history[start_idx:end_idx]
+        print(f"当前页 {page}, 页大小 {page_size}, 返回数据量: {len(current_page_data)}")
+        
+        return True, {
+            'data': current_page_data,
+            'total': total,
+            'page': page,
+            'page_size': page_size
+        }
+    except Exception as e:
+        print(f"Error in get_income_history: {str(e)}")
+        return False, str(e)
