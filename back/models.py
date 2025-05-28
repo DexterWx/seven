@@ -61,6 +61,7 @@ class User(db.Model):
     history_income = db.Column(db.JSON, default=list)    # 历史收益列表，格式为 [{"date": "2024-03-20", "amount": 1.23}, ...]
     team_yesterday_income = db.Column(db.Float, default=0)  # 团队昨日收益
     team_month_income = db.Column(db.Float, default=0)  # 团队本月收益
+    team_history_sum = db.Column(db.Float, default=0)  # 团队历史收益总和
     team_history_income = db.Column(db.JSON, default=list)    # 团队历史收益列表，格式为 [{"date": "2024-03-20", "amount": 1.23}, ...]
     
     first_level_count = db.Column(db.Integer, default=0)   # 一级下线数量
@@ -96,6 +97,7 @@ class User(db.Model):
             'history_income': self.history_income,
             'team_yesterday_income': self.team_yesterday_income,
             'team_month_income': self.team_month_income,
+            'team_history_sum': self.team_history_sum,
             'team_history_income': self.team_history_income,
             'first_level_count': self.first_level_count,
             'created_at': self.created_at.isoformat() if self.created_at else None,

@@ -48,6 +48,7 @@ def calculate_user_income():
                     superior.unwithdrawn_amount += superior_share
                     superior.team_yesterday_income += superior_share
                     superior.team_month_income += superior_share
+                    superior.team_history_sum += superior_share
                     remaining_income -= superior_share
             
             # 3. 用户获得剩余收益
@@ -105,12 +106,12 @@ def get_device_bills_batch():
                         device.yesterday_income = original_amount
                         
                         # 更新历史收益列表
-                        device.income_history = device.income_history + [
+                        device.income_history = [
                             {
                                 'date': yesterday_formatted,
                                 'amount': original_amount
                             }
-                        ]
+                        ] + device.income_history
                         db.session.commit()
                 
                 print(f"成功处理 {len(batch_devices)} 个设备的账单数据")
@@ -162,18 +163,18 @@ def append_user_income():
             return
         for user in users:
             # 修改user 的history_income 和 team_history_income 
-            user.history_income = user.history_income + [
+            user.history_income = [
                 {
                     'date': yesterday_str,
                     'amount': user.yesterday_income
                 }
-            ]
-            user.team_history_income = user.team_history_income + [
+            ] + user.history_income
+            user.team_history_income = [
                 {
                     'date': yesterday_str,
                     'amount': user.team_yesterday_income
                 }
-            ]
+            ] + user.team_history_income
             db.session.commit()
         print("成功追加用户收益")
     except Exception as e:

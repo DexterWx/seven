@@ -68,6 +68,7 @@ def generate_fake_users(count=50):
             month_income=0,
             team_yesterday_income=0,
             team_month_income=0,
+            team_history_sum=0,
             team_history_income=[],
             first_level_count=0  # 初始化为0，后面再更新
         )
