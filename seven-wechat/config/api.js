@@ -24,6 +24,9 @@ const API = {
     },
     UPDATE_ALIPAY: function(phone) {
       return `${BASE_URL}/wechat/users/${phone}/alipay`;
+    },
+    INCOME_HISTORY: function(phone) {
+      return `${BASE_URL}/wechat/users/${phone}/income-history`;
     }
   },
   // 设备相关接口

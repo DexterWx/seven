@@ -541,5 +541,43 @@ def wechat_get_income_history(device_id):
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/wechat/users/<phone>/income-history', methods=['GET'])
+def wechat_get_user_income_history(phone):
+    """小程序获取用户收益历史"""
+    try:
+        page = int(request.args.get('page', 1))
+        page_size = int(request.args.get('page_size', 20))
+        history_type = request.args.get('type', 'personal')  # personal 或 team
+        
+        user = User.query.filter_by(phone=phone).first()
+        if not user:
+            return jsonify({'success': False, 'message': '用户不存在'}), 404
+            
+        # 根据类型获取不同的历史数据
+        income_history = user.team_history_income if history_type == 'team' else user.history_income
+        income_history = income_history or []
+        
+        # 计算总数
+        total = len(income_history)
+        
+        # 计算分页
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        
+        # 获取当前页的数据
+        current_page_data = income_history[start_idx:end_idx]
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'data': current_page_data,
+                'total': total,
+                'page': page,
+                'page_size': page_size
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True) 

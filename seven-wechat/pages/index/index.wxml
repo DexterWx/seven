@@ -33,7 +33,7 @@
 
 <view class="card">
   <view class="card-title">
-    <text>团队管理</text>
+    <text>设备管理</text>
   </view>
   <view class="yesterday-area">
     <view class="yesterday-label">终端数量(个)</view>

@@ -1,5 +1,5 @@
 <!--income-details.wxml-->
-<view class="container">
+<view class="page-wrapper">
   <view class="header">
     <view class="back-btn" bindtap="backToHome">
       <text class="back-icon">←</text>
@@ -8,11 +8,43 @@
     <view class="page-title">收益明细</view>
   </view>
   
-  <view class="details-card">
-    <view class="details-title">明细记录</view>
-    <view class="placeholder">
-      <text class="placeholder-text">明细功能开发中...</text>
-      <text class="placeholder-desc">即将为您展示详细的收益记录</text>
+  <view class="tab-container">
+    <view class="tab-item {{type === 'personal' ? 'active' : ''}}" bindtap="switchType" data-type="personal">
+      <text class="tab-text">个人（含抽成）</text>
+    </view>
+    <view class="tab-item {{type === 'team' ? 'active' : ''}}" bindtap="switchType" data-type="team">
+      <text class="tab-text">团队（抽成）</text>
     </view>
   </view>
+
+  <view class="summary-container">
+    <view class="summary-item">
+      <text class="summary-label">总收益(元)</text>
+      <text class="summary-value">{{type === 'personal' ? totalIncome : teamTotalIncome}}</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-label">月收益(元)</text>
+      <text class="summary-value">{{type === 'personal' ? monthIncome : teamMonthIncome}}</text>
+    </view>
+  </view>
+
+  <scroll-view 
+    class="income-list" 
+    scroll-y="true" 
+    bindscrolltolower="onReachBottom"
+    enable-flex="true"
+  >
+    <view class="income-item" wx:for="{{incomeList}}" wx:key="index">
+      <text class="date">{{item.date}}</text>
+      <text class="amount">¥{{item.amount}}</text>
+    </view>
+
+    <view class="loading" wx:if="{{loading}}">
+      <text>数据加载中...</text>
+    </view>
+    
+    <view class="no-more" wx:if="{{!loading && (noMore || incomeList.length === 0)}}">
+      <text>{{incomeList.length === 0 ? '暂无收益记录' : '已经到底啦'}}</text>
+    </view>
+  </scroll-view>
 </view> 

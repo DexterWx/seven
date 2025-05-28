@@ -307,9 +307,6 @@ def get_income_history(device_id, page=1, page_size=10):
         start_idx = (page - 1) * page_size
         end_idx = start_idx + page_size
         
-        # 对历史记录进行倒序排序（最新的在前面）
-        income_history.sort(key=lambda x: x['date'], reverse=True)
-        
         # 获取当前页的数据
         current_page_data = income_history[start_idx:end_idx]
         print(f"当前页 {page}, 页大小 {page_size}, 返回数据量: {len(current_page_data)}")

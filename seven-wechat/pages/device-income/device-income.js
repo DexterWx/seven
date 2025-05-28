@@ -22,9 +22,7 @@ Page({
   },
 
   handleBack() {
-    wx.navigateBack({
-      delta: 1
-    })
+    wx.navigateBack()
   },
 
   async loadIncomeHistory() {
@@ -103,8 +101,13 @@ Page({
           }
         }
 
+        const formattedList = newList.map(item => ({
+          ...item,
+          amount: Number(item.amount).toFixed(2)
+        }))
+
         this.setData({
-          incomeList: [...this.data.incomeList, ...newList],
+          incomeList: [...this.data.incomeList, ...formattedList],
           page: this.data.page + 1
         })
       } else {

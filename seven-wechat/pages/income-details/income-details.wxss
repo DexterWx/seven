@@ -1,12 +1,9 @@
 /* income-details.wxss */
-page {
-  height: 100vh;
-  background: #f5f5f5;
-}
-
-.container {
+.page-wrapper {
   min-height: 100vh;
-  padding-top: 80rpx;
+  padding-top: 140rpx;
+  box-sizing: border-box;
+  background: #f5f5f5;
 }
 
 .header {
@@ -49,6 +46,127 @@ page {
   font-weight: bold;
 }
 
+.tab-container {
+  display: flex;
+  justify-content: space-between;
+  background: #fff;
+  padding: 20rpx;
+  margin: 20rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
+  width: calc(100% - 40rpx);
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20rpx 40rpx;
+  font-size: 28rpx;
+  color: #666;
+  position: relative;
+  margin: 0;
+  text-align: center;
+}
+
+.tab-text {
+  display: block;
+  text-align: center;
+  width: 100%;
+}
+
+.tab-item.active {
+  color: #e94f4f;
+  font-weight: bold;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background: #e94f4f;
+  border-radius: 2rpx;
+}
+
+.summary-container {
+  display: flex;
+  justify-content: space-between;
+  background: #fff;
+  padding: 30rpx 40rpx;
+  margin: 20rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
+  width: calc(100% - 40rpx);
+  box-sizing: border-box;
+}
+
+.summary-item {
+  flex: 1;
+  text-align: center;
+}
+
+.summary-label {
+  display: block;
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+}
+
+.summary-value {
+  display: block;
+  font-size: 36rpx;
+  color: #e94f4f;
+  font-weight: bold;
+}
+
+.income-list {
+  margin-top: 280rpx;
+  background: #fff;
+  margin: 20rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
+}
+
+.income-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx 20rpx;
+  border-bottom: 1rpx solid #eee;
+  margin: 0 20rpx;
+}
+
+.income-item:last-child {
+  border-bottom: none;
+}
+
+.date {
+  font-size: 28rpx;
+  color: #333;
+  flex: 1;
+}
+
+.amount {
+  font-size: 28rpx;
+  color: #e94f4f;
+  font-weight: bold;
+  min-width: 140rpx;
+  text-align: right;
+  margin-left: 40rpx;
+}
+
+.loading, .no-more {
+  text-align: center;
+  padding: 20rpx;
+  color: #999;
+  font-size: 24rpx;
+}
+
 .summary-card {
   background: #fff;
   border-radius: 24rpx;
@@ -68,25 +186,6 @@ page {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 30rpx;
-}
-
-.summary-item {
-  text-align: center;
-  padding: 20rpx;
-  background: #f8f8f8;
-  border-radius: 12rpx;
-}
-
-.summary-label {
-  font-size: 24rpx;
-  color: #666;
-  margin-bottom: 10rpx;
-}
-
-.summary-value {
-  font-size: 28rpx;
-  color: #e94f4f;
-  font-weight: bold;
 }
 
 .details-card {

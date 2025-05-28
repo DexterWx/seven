@@ -84,12 +84,16 @@
 .date {
   font-size: 28rpx;
   color: #333;
+  flex: 1;
 }
 
 .amount {
   font-size: 28rpx;
   color: #ff6b6b;
   font-weight: bold;
+  min-width: 160rpx;
+  text-align: right;
+  flex-shrink: 0;
 }
 
 .loading, .no-more {

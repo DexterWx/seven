@@ -25,7 +25,7 @@ Page({
     
     // 加载用户数据
     this.loadUserData(phone);
-    // 加载团队管理数据
+    // 加载设备数据
     this.loadTeamData(phone);
   },
   
