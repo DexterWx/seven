@@ -105,7 +105,7 @@ def get_device_bills_batch():
                         device.yesterday_income = original_amount
                         
                         # 更新历史收益列表
-                        history = device.income_history or []
+                        history = device.income_history
                         history.append({
                             'date': yesterday_formatted,
                             'amount': original_amount
@@ -151,43 +151,6 @@ def zero_user_income():
         db.session.rollback()
         print(f"清零用户昨日收益时出错: {str(e)}")
 
-def update_device_income():
-    """更新设备收益"""
-    try:
-        # 获取昨天的日期
-        yesterday = datetime.now() - timedelta(days=1)
-        yesterday_str = yesterday.strftime('%Y-%m-%d')
-        
-        # 获取所有设备
-        devices = Device.query.all()
-        
-        # 每100个设备一批处理
-        batch_size = 100
-        for i in range(0, len(devices), batch_size):
-            batch_devices = devices[i:i + batch_size]
-            
-            # 获取设备ID列表
-            device_ids = [device.device_id for device in batch_devices]
-            
-            # 调用七牛云API获取收益
-            qiniu_client = QiniuDeviceClient()
-            income_dict = qiniu_client.get_device_income(device_ids, yesterday_str)
-            
-            # 更新设备收益
-            for device_id, income in income_dict.items():
-                device = Device.query.filter_by(device_id=device_id).first()
-                if device:
-                    device.yesterday_income = income
-                    db.session.commit()
-            
-            # 每批处理完后暂停1秒
-            time.sleep(1)
-        
-        return True, "更新成功"
-    except Exception as e:
-        print(f"Error in update_device_income: {str(e)}")
-        return False, str(e)
-
 def append_user_income():
     """追加用户收益"""
     try:
@@ -199,14 +162,19 @@ def append_user_income():
             print("没有找到任何用户")
             return
         for user in users:
-            user.history_income.append({
-                'date': yesterday_str,
-                'amount': user.yesterday_income
-            })
-            user.team_history_income.append({
-                'date': yesterday_str,
-                'amount': user.team_yesterday_income
-            })
+            # 修改user 的history_income 和 team_history_income 
+            user.history_income = user.history_income + [
+                {
+                    'date': yesterday_str,
+                    'amount': user.yesterday_income
+                }
+            ]
+            user.team_history_income = user.team_history_income + [
+                {
+                    'date': yesterday_str,
+                    'amount': user.team_yesterday_income
+                }
+            ]
             db.session.commit()
         print("成功追加用户收益")
     except Exception as e:
