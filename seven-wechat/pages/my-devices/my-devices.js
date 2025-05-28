@@ -218,5 +218,12 @@ Page({
     wx.switchTab({
       url: '/pages/index/index'
     });
+  },
+
+  handleIncomeDetail(e) {
+    const device = e.currentTarget.dataset.device
+    wx.navigateTo({
+      url: `/pages/device-income/device-income?deviceId=${device.device_id}`
+    })
   }
 }); 

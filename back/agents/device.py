@@ -289,3 +289,10 @@ def get_subordinate_devices(phone, page=1, per_page=10):
     except Exception as e:
         print(f"Error in get_subordinate_devices: {str(e)}")
         return False, [] 
+
+def get_income_history(device_id):
+    """获取设备收益历史"""
+    device = Device.query.filter_by(device_id=device_id).first()
+    if not device:
+        return False, "设备不存在"
+    return True, device.income_history

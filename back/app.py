@@ -526,6 +526,15 @@ def wechat_update_device_phone(device_id):
         return jsonify({'success': success, 'message': message})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
-        
+
+@app.route('/api/wechat/devices/<device_id>/income-history', methods=['GET'])
+def wechat_get_income_history(device_id):
+    """小程序获取设备收益历史"""
+    try:
+        success, result = device.get_income_history(device_id)
+        return jsonify({'success': success, 'data': result})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True) 

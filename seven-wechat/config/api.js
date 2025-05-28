@@ -45,7 +45,8 @@ const API = {
     },
     UPDATE_PHONE: function(deviceId) {
       return `${BASE_URL}/wechat/devices/${deviceId}/phone`;
-    }
+    },
+    INCOME_HISTORY: (deviceId) => `${BASE_URL}/wechat/devices/${deviceId}/income-history`,
   }
 };
 

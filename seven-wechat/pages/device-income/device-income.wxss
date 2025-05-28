@@ -1,0 +1,99 @@
+.container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.custom-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 88rpx;
+  padding-top: 44rpx;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  padding-left: 20rpx;
+  padding-right: 20rpx;
+  z-index: 100;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
+}
+
+.nav-back {
+  display: flex;
+  align-items: center;
+  padding: 10rpx;
+}
+
+.back-icon {
+  font-size: 32rpx;
+  color: #333;
+  margin-right: 8rpx;
+}
+
+.back-text {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.nav-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 32rpx;
+  color: #333;
+  font-weight: bold;
+}
+
+.content {
+  padding-top: 132rpx;
+  padding-left: 20rpx;
+  padding-right: 20rpx;
+}
+
+.header {
+  background-color: #fff;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  border-radius: 10rpx;
+}
+
+.device-info {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.income-list {
+  background-color: #fff;
+  border-radius: 10rpx;
+}
+
+.income-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx 20rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.income-item:last-child {
+  border-bottom: none;
+}
+
+.date {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.amount {
+  font-size: 28rpx;
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+.loading, .no-more {
+  text-align: center;
+  padding: 20rpx;
+  color: #999;
+  font-size: 24rpx;
+} 

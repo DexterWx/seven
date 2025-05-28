@@ -14,8 +14,20 @@
       <view class="device-income">昨日收益：¥{{item.yesterday_income}}</view>
       <view class="device-owner">姓名：{{item.user_name}}</view>
       <view class="device-phone">电话：{{item.phone}}</view>
-      <view class="device-action">
-        <button class="release-btn" size="mini" data-id="{{item.device_id}}" data-index="{{index}}" bindtap="showReleaseModal">下放</button>
+      <view class="device-actions">
+        <button 
+          class="action-btn release-btn" 
+          size="mini" 
+          data-id="{{item.device_id}}" 
+          data-index="{{index}}" 
+          bindtap="showReleaseModal"
+        >下放</button>
+        <button 
+          class="action-btn income-detail" 
+          size="mini"
+          bindtap="handleIncomeDetail" 
+          data-device="{{item}}"
+        >收益明细</button>
       </view>
     </view>
     

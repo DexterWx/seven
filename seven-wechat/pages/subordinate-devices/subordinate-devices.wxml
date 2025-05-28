@@ -15,17 +15,28 @@
       <view class="device-owner">姓名：{{item.user_name}}</view>
       <view class="device-phone">电话：{{item.phone}}</view>
       <view class="device-commission">
-        分成比例：
+        <text>分成比例：</text>
         <text
           class="commission-value"
-          style="color: #007aff"
           data-id="{{item.device_id}}"
           data-index="{{index}}"
           bindtap="showSetCommissionModal"
-        >
-          {{item.first_commission_rate_str}}
-        </text>
-        <button class="recycle-btn" size="mini" data-id="{{item.device_id}}" data-index="{{index}}" bindtap="showRecycleModal">回收</button>
+        >{{item.first_commission_rate_str}}</text>
+      </view>
+      <view class="device-actions">
+        <button 
+          class="action-btn recycle-btn" 
+          size="mini" 
+          data-id="{{item.device_id}}" 
+          data-index="{{index}}" 
+          bindtap="showRecycleModal"
+        >回收</button>
+        <button 
+          class="action-btn income-detail" 
+          size="mini"
+          bindtap="handleIncomeDetail" 
+          data-device="{{item}}"
+        >收益明细</button>
       </view>
     </view>
     
@@ -41,6 +52,7 @@
       <text class="no-more-text">没有更多数据了</text>
     </view>
   </scroll-view>
+
   <!-- 设置分成弹窗 -->
   <view class="modal" wx:if="{{showCommissionModal}}">
     <view class="modal-content">
@@ -55,6 +67,7 @@
       </view>
     </view>
   </view>
+
   <!-- 回收确认弹窗 -->
   <view class="modal" wx:if="{{showRecycleConfirmModal}}">
     <view class="modal-content">

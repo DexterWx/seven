@@ -15,7 +15,12 @@ Page({
     showRecycleConfirmModal: false,
     recycleDeviceId: '',
     recycleDeviceIndex: null,
-    userInfo: null
+    userInfo: null,
+    deviceList: [],
+    pageSize: 10,
+    showRecycleModal: false,
+    selectedDeviceId: null,
+    selectedDeviceIndex: null
   },
 
   onLoad() {
@@ -293,5 +298,16 @@ Page({
         });
       }
     });
+  },
+
+  handleIncomeDetail(e) {
+    const device = e.currentTarget.dataset.device
+    wx.navigateTo({
+      url: `/pages/device-income/device-income?deviceId=${device.device_id}`
+    })
+  },
+
+  onReachBottom() {
+    this.loadDevices()
   }
 }); 

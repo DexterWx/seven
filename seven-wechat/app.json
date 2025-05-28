@@ -8,7 +8,8 @@
     "pages/my-devices/my-devices",
     "pages/subordinate-devices/subordinate-devices",
     "pages/settings/settings",
-    "pages/payment-info/payment-info"
+    "pages/payment-info/payment-info",
+    "pages/device-income/device-income"
   ],
   "window": {
     "backgroundTextStyle": "light",

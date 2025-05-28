@@ -1,0 +1,32 @@
+<view class="container">
+  <view class="custom-nav">
+    <view class="nav-back" bindtap="handleBack">
+      <text class="back-icon">←</text>
+      <text class="back-text">返回</text>
+    </view>
+    <text class="nav-title">设备收益明细</text>
+  </view>
+
+  <view class="content">
+    <view class="header">
+      <view class="device-info">
+        <text class="device-id">设备号：{{deviceId}}</text>
+      </view>
+    </view>
+
+    <view class="income-list">
+      <view class="income-item" wx:for="{{incomeList}}" wx:key="date">
+        <text class="date">{{item.date}}</text>
+        <text class="amount">¥{{item.amount}}</text>
+      </view>
+    </view>
+
+    <view class="loading" wx:if="{{loading}}">
+      <text>加载中...</text>
+    </view>
+    
+    <view class="no-more" wx:if="{{noMore}}">
+      <text>没有更多数据了</text>
+    </view>
+  </view>
+</view> 
