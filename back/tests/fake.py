@@ -64,9 +64,11 @@ def generate_fake_users(count=50):
             unwithdrawn_amount=0,
             withdrawn_amount=0,
             yesterday_income=0,
+            history_income=[],
             month_income=0,
             team_yesterday_income=0,
             team_month_income=0,
+            team_history_income=[],
             first_level_count=0  # 初始化为0，后面再更新
         )
         users.append(user)
@@ -98,7 +100,8 @@ def generate_devices(users):
                 commission_rate=0.1,
                 first_commission_rate=0.1,
                 yesterday_income=random.uniform(0, 5),  # 随机生成0-5的昨日收益
-                created_at=datetime.utcnow()  # 添加创建时间
+                created_at=datetime.utcnow(),  # 添加创建时间,
+                income_history=[]
             )
             devices.append(device)
     return devices

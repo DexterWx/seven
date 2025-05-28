@@ -1,7 +1,43 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from sqlalchemy.types import TypeDecorator, JSON
+from sqlalchemy.dialects.postgresql import JSONB
+from typing import List, Dict
+import json
 
 db = SQLAlchemy()
+
+class IncomeHistory(TypeDecorator):
+    """自定义收益历史记录类型"""
+    impl = JSON
+    
+    def process_bind_param(self, value: List[Dict], dialect):
+        """验证并处理输入数据"""
+        if value is None:
+            return []
+            
+        if not isinstance(value, list):
+            raise ValueError("收益历史必须是列表类型")
+            
+        for item in value:
+            if not isinstance(item, dict):
+                raise ValueError("收益历史记录必须是字典类型")
+            if "date" not in item or "amount" not in item:
+                raise ValueError("收益历史记录必须包含 date 和 amount 字段")
+            if not isinstance(item["amount"], (int, float)):
+                raise ValueError("amount 必须是数字类型")
+            try:
+                datetime.strptime(item["date"], "%Y-%m-%d")
+            except ValueError:
+                raise ValueError("date 必须是 YYYY-MM-DD 格式")
+        
+        return value
+    
+    def process_result_value(self, value, dialect):
+        """处理从数据库读取的数据"""
+        if value is None:
+            return []
+        return value
 
 class User(db.Model):
     """用户模型"""
@@ -22,8 +58,10 @@ class User(db.Model):
     withdrawn_amount = db.Column(db.Float, default=0)    # 已提现金额
     yesterday_income = db.Column(db.Float, default=0)    # 昨日收益
     month_income = db.Column(db.Float, default=0)        # 本月收益
+    history_income = db.Column(db.JSON, default=list)    # 历史收益列表，格式为 [{"date": "2024-03-20", "amount": 1.23}, ...]
     team_yesterday_income = db.Column(db.Float, default=0)  # 团队昨日收益
     team_month_income = db.Column(db.Float, default=0)  # 团队本月收益
+    team_history_income = db.Column(db.JSON, default=list)    # 团队历史收益列表，格式为 [{"date": "2024-03-20", "amount": 1.23}, ...]
     
     first_level_count = db.Column(db.Integer, default=0)   # 一级下线数量
     
@@ -55,8 +93,10 @@ class User(db.Model):
             'withdrawn_amount': self.withdrawn_amount,
             'yesterday_income': self.yesterday_income,
             'month_income': self.month_income,
+            'history_income': self.history_income,
             'team_yesterday_income': self.team_yesterday_income,
             'team_month_income': self.team_month_income,
+            'team_history_income': self.team_history_income,
             'first_level_count': self.first_level_count,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_login': self.last_login.isoformat() if self.last_login else None,
@@ -88,6 +128,7 @@ class Device(db.Model):
     first_commission_rate = db.Column(db.Float, default=0)     # 一级分成比例  分给上级的
     
     yesterday_income = db.Column(db.Float, default=0)    # 昨日收益
+    income_history = db.Column(db.JSON, default=list)    # 历史收益列表，格式为 [{"date": "2024-03-20", "amount": 1.23}, ...]
 
     def to_dict(self):
         return {
@@ -101,7 +142,8 @@ class Device(db.Model):
             'remark': self.remark,
             'commission_rate': self.commission_rate,
             'first_commission_rate': self.first_commission_rate,
-            'yesterday_income': self.yesterday_income
+            'yesterday_income': self.yesterday_income,
+            'income_history': self.income_history
         }
 
 class PlatformStats(db.Model):

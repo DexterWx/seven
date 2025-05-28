@@ -75,6 +75,7 @@ def get_device_bills_batch():
         # 获取昨天的日期
         yesterday = datetime.now() - timedelta(days=1)
         yesterday_str = yesterday.strftime('%Y%m%d')
+        yesterday_formatted = yesterday.strftime('%Y-%m-%d')
         print(f"获取 {yesterday_str} 的账单数据")
 
         # 每100个设备一批
@@ -95,13 +96,22 @@ def get_device_bills_batch():
                 qiniu_client = QiniuDeviceClient()
                 income_dict = qiniu_client.get_device_income(device_ids, yesterday_str)
                 
-                # 更新每个设备的昨日收益
+                # 更新每个设备的昨日收益和历史收益
                 for device_id, income in income_dict.items():
                     device = Device.query.filter_by(device_id=device_id).first()
                     if device:
                         # 记录设备的原始收益
                         original_amount = income['settle_amount'] if income else 0
                         device.yesterday_income = original_amount
+                        
+                        # 更新历史收益列表
+                        history = device.income_history or []
+                        history.append({
+                            'date': yesterday_formatted,
+                            'amount': original_amount
+                        })
+                        
+                        device.income_history = history
                         db.session.commit()
                 
                 print(f"成功处理 {len(batch_devices)} 个设备的账单数据")
@@ -178,8 +188,34 @@ def update_device_income():
         print(f"Error in update_device_income: {str(e)}")
         return False, str(e)
 
+def append_user_income():
+    """追加用户收益"""
+    try:
+        # 获取所有用户
+        yesterday = datetime.now() - timedelta(days=1)
+        yesterday_str = yesterday.strftime('%Y-%m-%d')
+        users = User.query.all()
+        if not users:
+            print("没有找到任何用户")
+            return
+        for user in users:
+            user.history_income.append({
+                'date': yesterday_str,
+                'amount': user.yesterday_income
+            })
+            user.team_history_income.append({
+                'date': yesterday_str,
+                'amount': user.team_yesterday_income
+            })
+            db.session.commit()
+        print("成功追加用户收益")
+    except Exception as e:
+        db.session.rollback()
+        print(f"追加用户收益时出错: {str(e)}")
+
 if __name__ == "__main__":
     with app.app_context():
         get_device_bills_batch()
         zero_user_income()  # 先清零
         calculate_user_income()
+        append_user_income()
