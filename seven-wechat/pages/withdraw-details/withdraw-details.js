@@ -7,7 +7,8 @@ Page({
     unwithdrawnAmount: '0.00',
     totalAmount: '0.00',
     showWithdrawModal: false,
-    withdrawAmount: ''
+    withdrawAmount: '',
+    useBank: false  // 默认使用支付宝
   },
 
   onLoad() {
@@ -81,6 +82,12 @@ Page({
     });
   },
 
+  onPaymentMethodChange(e) {
+    this.setData({
+      useBank: e.detail.value === 'bank'
+    });
+  },
+
   confirmWithdraw() {
     const amount = parseFloat(this.data.withdrawAmount);
     const unwithdrawn = parseFloat(this.data.unwithdrawnAmount);
@@ -113,7 +120,8 @@ Page({
       url: API.USER.APPLY_WITHDRAW(phone),
       method: 'POST',
       data: {
-        amount: amount
+        amount: amount,
+        use_bank: this.data.useBank  // 添加支付方式参数
       },
       success: (res) => {
         if (res.data && res.data.success) {

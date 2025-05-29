@@ -10,7 +10,7 @@
   
   <scroll-view class="device-list" scroll-y="true" bindscrolltolower="loadMore">
     <view wx:for="{{devices}}" wx:key="id" class="device-item">
-      <view class="device-id" bindtap="copyDeviceId" data-id="{{item.device_id}}">{{item.device_id}}</view>
+      <view class="device-id" bindtap="copyDeviceId" data-id="{{item.device_id}}">{{item.display_device_id}}</view>
       <view class="device-income">昨日收益：¥{{item.yesterday_income}}</view>
       <view class="device-owner">姓名：{{item.user_name}}</view>
       <view class="device-phone">电话：{{item.phone}}</view>

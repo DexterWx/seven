@@ -1,8 +1,10 @@
 import API from '../../config/api'
+import { md5 } from '../../utils/md5'
 
 Page({
   data: {
     deviceId: '',
+    displayDeviceId: '',
     incomeList: [],
     page: 1,
     pageSize: 20,
@@ -14,8 +16,10 @@ Page({
 
   onLoad(options) {
     if (options.deviceId) {
+      const encryptedId = md5(options.deviceId).substring(0, 12)
       this.setData({
-        deviceId: options.deviceId
+        deviceId: options.deviceId,
+        displayDeviceId: encryptedId
       })
       this.loadIncomeHistory()
     }
@@ -40,7 +44,6 @@ Page({
             page_size: this.data.pageSize
           },
           success: (res) => {
-            console.log('收益历史返回数据:', res.data)
             resolve(res)
           },
           fail: (error) => {
@@ -80,13 +83,6 @@ Page({
       if (response.data && response.data.success) {
         const result = response.data.data
         const newList = result.data || []
-        
-        console.log('当前页数据:', {
-          page: this.data.page,
-          newDataCount: newList.length,
-          total: result.total,
-          currentTotal: (this.data.page - 1) * this.data.pageSize + newList.length
-        })
         
         // 如果没有新的数据或者已经到达总数，说明已经到底了
         const total = result.total || 0

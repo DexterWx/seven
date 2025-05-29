@@ -13,7 +13,7 @@
     bindscrolltolower="onReachBottom"
     enable-flex="true"
   >
-    <text class="device-id">设备号：{{deviceId}}</text>
+    <text class="device-id">设备号：{{displayDeviceId}}</text>
 
     <view class="income-list">
       <view class="income-item" wx:for="{{incomeList}}" wx:key="date">

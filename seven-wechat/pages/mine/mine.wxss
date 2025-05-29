@@ -206,3 +206,48 @@ page {
   background: #333;
   color: #fff;
 }
+
+/* 二维码弹窗样式 */
+.qr-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.qr-content {
+  background: #fff;
+  border-radius: 12rpx;
+  width: 80%;
+  max-width: 600rpx;
+  padding: 40rpx 32rpx;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.qr-title {
+  font-size: 34rpx;
+  font-weight: 500;
+  color: #000;
+  margin-bottom: 24rpx;
+}
+
+.qr-desc {
+  font-size: 28rpx;
+  color: #888;
+  line-height: 1.4;
+  margin-bottom: 32rpx;
+}
+
+.qr-image {
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+}

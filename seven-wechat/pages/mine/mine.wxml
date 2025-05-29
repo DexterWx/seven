@@ -39,7 +39,6 @@
       </view>
       <view class="service-info">
         <view class="service-name">联系我们</view>
-        <view class="service-desc">13940598165</view>
       </view>
       <view class="service-arrow">></view>
     </view>
@@ -76,6 +75,15 @@
         <button class="modal-btn cancel" bindtap="cancelBind">取消</button>
         <button class="modal-btn confirm" bindtap="confirmBind">确定</button>
       </view>
+    </view>
+  </view>
+
+  <!-- 联系我们二维码弹窗 -->
+  <view class="qr-modal" wx:if="{{showQrModal}}" bindtap="hideQrModal">
+    <view class="qr-content" catchtap="preventBubble">
+      <view class="qr-title">联系客服</view>
+      <view class="qr-desc">扫码添加客服微信</view>
+      <image class="qr-image" src="/assets/contact-qr.jpg" mode="widthFix"></image>
     </view>
   </view>
 </view>

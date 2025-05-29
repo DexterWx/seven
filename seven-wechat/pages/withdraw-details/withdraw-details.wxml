@@ -49,6 +49,16 @@
           value="{{withdrawAmount}}"
           bindinput="onWithdrawAmountInput"
         />
+        <view class="payment-method">
+          <radio-group class="radio-group" bindchange="onPaymentMethodChange">
+            <label class="radio">
+              <radio value="alipay" checked="{{!useBank}}" />支付宝
+            </label>
+            <label class="radio">
+              <radio value="bank" checked="{{useBank}}" />银行卡
+            </label>
+          </radio-group>
+        </view>
       </view>
       <view class="modal-footer">
         <button class="modal-btn cancel" bindtap="cancelWithdraw">取消</button>

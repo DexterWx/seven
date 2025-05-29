@@ -196,4 +196,26 @@ page {
 .modal-btn.confirm {
   background: #333;
   color: #fff;
+}
+
+.payment-method {
+  margin-top: 20rpx;
+  padding: 0 20rpx;
+}
+
+.radio-group {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.radio radio {
+  margin-right: 8rpx;
 } 

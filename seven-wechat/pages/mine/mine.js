@@ -11,7 +11,8 @@ Page({
         userPhone: '',
         superiorPhone: '',
         showBindModal: false,
-        inputPhone: ''
+        inputPhone: '',
+        showQrModal: false
     },
 
     /**
@@ -194,20 +195,19 @@ Page({
 
     // 联系我们
     contactUs() {
-        wx.showModal({
-            title: '联系我们',
-            content: '客服电话：13940598165',
-            showCancel: true,
-            cancelText: '取消',
-            confirmText: '拨打',
-            success: (res) => {
-                if (res.confirm) {
-                    wx.makePhoneCall({
-                        phoneNumber: '13940598165'
-                    });
-                }
-            }
-        });
+        this.setData({
+            showQrModal: true
+        })
+    },
+
+    hideQrModal() {
+        this.setData({
+            showQrModal: false
+        })
+    },
+
+    preventBubble() {
+        // 阻止冒泡,避免点击内容区域时关闭弹窗
     },
 
     // 跳转到结算信息页面

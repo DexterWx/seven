@@ -1,5 +1,6 @@
 // my-devices.js
 import API from '../../config/api'
+import { md5 } from '../../utils/md5'
 
 Page({
   data: {
@@ -86,11 +87,12 @@ Page({
 
   copyDeviceId(e) {
     const deviceId = e.currentTarget.dataset.id;
+    const encryptedId = md5(deviceId).substring(0, 12);
     wx.setClipboardData({
-      data: deviceId,
+      data: encryptedId,
       success: () => {
         wx.showToast({
-          title: '设备ID已复制',
+          title: '已复制设备ID',
           icon: 'success'
         });
       },
@@ -225,5 +227,12 @@ Page({
     wx.navigateTo({
       url: `/pages/device-income/device-income?deviceId=${device.device_id}`
     })
+  },
+
+  processDeviceData(devices) {
+    return devices.map(device => ({
+      ...device,
+      display_device_id: md5(device.device_id).substring(0, 12) // 只显示前12位
+    }))
   }
 }); 

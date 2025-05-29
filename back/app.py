@@ -619,6 +619,7 @@ def wechat_apply_withdraw(phone):
     try:
         data = request.get_json()
         amount = float(data.get('amount', 0))
+        use_bank = data.get('use_bank', False)  # 获取支付方式参数
         
         # 参数验证
         if amount <= 0:
@@ -649,8 +650,23 @@ def wechat_apply_withdraw(phone):
                 'message': '您有正在处理的提现申请，请等待审核'
             }), 400
             
-        # 更新申请中的金额
+        # 检查支付信息是否完整
+        if use_bank:
+            if not all([user.bank_card_number, user.bank_holder_name, user.bank_id_number, user.bank_phone]):
+                return jsonify({
+                    'success': False,
+                    'message': '请先完善银行卡信息'
+                }), 400
+        else:
+            if not all([user.alipay_account, user.alipay_holder_name, user.alipay_id_number, user.alipay_phone]):
+                return jsonify({
+                    'success': False,
+                    'message': '请先完善支付宝信息'
+                }), 400
+            
+        # 更新申请中的金额和支付方式
         user.applying_amount = amount
+        user.use_bank = use_bank  # 更新支付方式
         db.session.commit()
         
         return jsonify({
