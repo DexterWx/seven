@@ -56,6 +56,7 @@ class User(db.Model):
     superior_phone = db.Column(db.String(20), db.ForeignKey('users.phone'), nullable=True, index=True)  # 上级手机号
     unwithdrawn_amount = db.Column(db.Float, default=0)  # 未体现金额
     withdrawn_amount = db.Column(db.Float, default=0)    # 已提现金额
+    applying_amount = db.Column(db.Float, default=0)    # 申请提现中的金额
     yesterday_income = db.Column(db.Float, default=0)    # 昨日收益
     month_income = db.Column(db.Float, default=0)        # 本月收益
     history_income = db.Column(db.JSON, default=list)    # 历史收益列表，格式为 [{"date": "2024-03-20", "amount": 1.23}, ...]
@@ -92,6 +93,7 @@ class User(db.Model):
             'superior_phone': self.superior_phone,
             'unwithdrawn_amount': self.unwithdrawn_amount,
             'withdrawn_amount': self.withdrawn_amount,
+            'applying_amount': self.applying_amount,
             'yesterday_income': self.yesterday_income,
             'month_income': self.month_income,
             'history_income': self.history_income,

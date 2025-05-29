@@ -121,6 +121,23 @@
         </template>
       </el-table-column>
       <el-table-column 
+        prop="applying_amount" 
+        label="申请提现金额" 
+        width="120"
+        sortable="custom"
+      >
+        <template #default="scope">
+          <el-button 
+            type="primary" 
+            link
+            @click="handleApproveWithdraw(scope.row)"
+            :disabled="!scope.row.applying_amount"
+          >
+            {{ scope.row.applying_amount?.toFixed(2) || '0.00' }}
+          </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column 
         prop="yesterday_income" 
         label="昨日总收益" 
         width="120"
@@ -736,6 +753,32 @@ const handleShowWithdrawInfo = (row) => {
     alipay_phone: row.alipay_phone,
   }
   withdrawInfoDialogVisible.value = true
+}
+
+// 处理提现申请审批
+const handleApproveWithdraw = async (row) => {
+  try {
+    await ElMessageBox.confirm(`确认允许用户提现 ${row.applying_amount?.toFixed(2)} 元吗？`, '提示', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    const response = await axios.post(`/api/users/${row.phone}/approve-withdraw`, {
+      amount: row.applying_amount
+    })
+    
+    if (response.data.success) {
+      ElMessage.success('提现申请已通过')
+      fetchUserList()  // 刷新列表
+    } else {
+      ElMessage.error(response.data.message || '操作失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.response?.data?.message || '操作失败')
+    }
+  }
 }
 
 // 初始化

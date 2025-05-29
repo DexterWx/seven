@@ -579,5 +579,39 @@ def wechat_get_user_income_history(phone):
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/users/<phone>/approve-withdraw', methods=['POST'])
+def approve_withdraw(phone):
+    """审批用户提现申请"""
+    try:
+        data = request.get_json()
+        amount = data.get('amount', 0)
+        
+        user = User.query.filter_by(phone=phone).first()
+        if not user:
+            return jsonify({'success': False, 'message': '用户不存在'}), 404
+            
+        if not user.applying_amount or user.applying_amount != amount:
+            return jsonify({'success': False, 'message': '提现申请金额不匹配'}), 400
+            
+        if user.unwithdrawn_amount < amount:
+            return jsonify({'success': False, 'message': '用户可提现金额不足'}), 400
+            
+        # 更新金额
+        user.withdrawn_amount += amount
+        user.unwithdrawn_amount -= amount
+        user.applying_amount = 0
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': '提现申请已通过'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"审批提现申请出错: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True) 
