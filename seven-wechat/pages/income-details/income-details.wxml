@@ -28,23 +28,24 @@
     </view>
   </view>
 
-  <scroll-view 
-    class="income-list" 
-    scroll-y="true" 
-    bindscrolltolower="onReachBottom"
-    enable-flex="true"
-  >
-    <view class="income-item" wx:for="{{incomeList}}" wx:key="index">
-      <text class="date">{{item.date}}</text>
-      <text class="amount">¥{{item.amount}}</text>
-    </view>
+  <view class="list-container">
+    <scroll-view 
+      class="income-list" 
+      scroll-y="true" 
+      bindscrolltolower="onReachBottom"
+    >
+      <view class="income-item" wx:for="{{incomeList}}" wx:key="index">
+        <text class="date">{{item.date}}</text>
+        <text class="amount">¥{{item.amount}}</text>
+      </view>
 
-    <view class="loading" wx:if="{{loading}}">
-      <text>数据加载中...</text>
-    </view>
-    
-    <view class="no-more" wx:if="{{!loading && (noMore || incomeList.length === 0)}}">
-      <text>{{incomeList.length === 0 ? '暂无收益记录' : '已经到底啦'}}</text>
-    </view>
-  </scroll-view>
+      <view class="loading" wx:if="{{loading}}">
+        <text>数据加载中...</text>
+      </view>
+      
+      <view class="no-more" wx:if="{{!loading && (noMore || incomeList.length === 0)}}">
+        <text>{{incomeList.length === 0 ? '暂无收益记录' : '已经到底啦'}}</text>
+      </view>
+    </scroll-view>
+  </view>
 </view> 

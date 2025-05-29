@@ -1,12 +1,13 @@
 // income-details.js
 import API from '../../config/api'
+import auth from '../../utils/auth'
 
 Page({
   data: {
     type: 'personal',  // personal 或 team
     incomeList: [],
     page: 1,
-    pageSize: 20,
+    pageSize: 20,      // 改为每页10条
     loading: false,
     noMore: false,
     phone: '',
@@ -19,6 +20,9 @@ Page({
   },
 
   onLoad() {
+    if (!auth.checkAndRedirectToLogin()) {
+      return;
+    }
     // 获取本地存储的手机号
     const phone = wx.getStorageSync('phone')
     if (!phone) {
@@ -33,37 +37,25 @@ Page({
   },
 
   loadUserInfo() {
-    console.log('开始加载用户信息')
     wx.request({
       url: API.USER.INFO(this.data.phone),
       method: 'GET',
       success: (res) => {
-        console.log('用户信息返回数据:', res.data)
         if (res.data && res.data.success && res.data.data) {
           const user = res.data.data
-          console.log('用户数据:', user)
-          
-          // 计算收益数据
           const withdrawn = Number(user.withdrawn_amount || 0)
           const unwithdrawn = Number(user.unwithdrawn_amount || 0)
           const totalIncome = (withdrawn + unwithdrawn).toFixed(2)
           const monthIncome = Number(user.month_income || 0).toFixed(2)
           const teamMonthIncome = Number(user.team_month_income || 0).toFixed(2)
           
-          console.log('计算后的收益数据:', {
-            totalIncome,
-            monthIncome,
-            teamMonthIncome
-          })
-          
           this.setData({
             totalIncome,
             monthIncome,
             teamMonthIncome,
-            teamTotalIncome: '0.00' // 团队总收益暂时写死为0
+            teamTotalIncome: Number(user.team_total_income || 0).toFixed(2)
           })
         } else {
-          console.error('获取用户信息失败:', res.data)
           wx.showToast({
             title: '获取用户信息失败',
             icon: 'none'
@@ -71,7 +63,6 @@ Page({
         }
       },
       fail: (error) => {
-        console.error('请求用户信息失败:', error)
         wx.showToast({
           title: '网络请求失败',
           icon: 'none'
@@ -112,16 +103,22 @@ Page({
       },
       success: (res) => {
         if (res.data && res.data.success) {
-          const newList = res.data.data.data || []
+          const { data: newList = [], total = 0 } = res.data.data || {}
+          
+          // 格式化数据
           const formattedList = newList.map(item => ({
-            ...item,
-            amount: Number(item.amount).toFixed(2)
+            date: item.date,
+            amount: Number(item.amount).toFixed(2),
+            date_amount: `${item.date}_${item.amount}`
           }))
+          
+          const currentTotal = this.data.incomeList.length + formattedList.length
+          const noMore = currentTotal >= total || formattedList.length < this.data.pageSize
           
           this.setData({
             incomeList: [...this.data.incomeList, ...formattedList],
             page: this.data.page + 1,
-            noMore: formattedList.length < this.data.pageSize,
+            noMore,
             retryCount: 0
           })
         } else {
@@ -153,6 +150,8 @@ Page({
   },
 
   onReachBottom() {
-    this.loadIncomeHistory()
+    if (!this.data.noMore) {
+      this.loadIncomeHistory()
+    }
   }
 }) 

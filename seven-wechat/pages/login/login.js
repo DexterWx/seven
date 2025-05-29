@@ -65,6 +65,8 @@ Page({
           // 存储用户信息和手机号
           wx.setStorageSync('userInfo', res.data);
           wx.setStorageSync('phone', phone);
+          wx.setStorageSync('isLoggedIn', true);
+          wx.setStorageSync('loginTime', Date.now());
           
           // 跳转到首页
           wx.reLaunch({
@@ -105,5 +107,52 @@ Page({
       });
       console.error('登录/注册失败', error);
     }
+  },
+
+  handleLogin() {
+    const { phone, password } = this.data;
+    
+    if (!phone || !password) {
+      wx.showToast({
+        title: '请输入手机号和密码',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    wx.request({
+      url: API.USER.LOGIN,
+      method: 'POST',
+      data: {
+        phone,
+        password
+      },
+      success: (res) => {
+        if (res.data && res.data.success) {
+          // 存储用户信息和登录状态
+          wx.setStorageSync('phone', phone);
+          wx.setStorageSync('userInfo', res.data.data);
+          wx.setStorageSync('isLoggedIn', true);
+          wx.setStorageSync('loginTime', Date.now());
+          
+          // 跳转到首页
+          wx.switchTab({
+            url: '/pages/index/index'
+          });
+        } else {
+          wx.showToast({
+            title: res.data.message || '登录失败',
+            icon: 'none'
+          });
+        }
+      },
+      fail: (error) => {
+        console.error('登录请求失败:', error);
+        wx.showToast({
+          title: '网络请求失败',
+          icon: 'none'
+        });
+      }
+    });
   }
 }); 

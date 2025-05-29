@@ -1,5 +1,6 @@
 // index.js
 import API from '../../config/api'
+import auth from '../../utils/auth'
 
 Page({
   data: {
@@ -11,7 +12,22 @@ Page({
     myDevices: '0',
     subordinateDevices: '0'
   },
+
+  onLoad() {
+    if (!auth.checkAndRedirectToLogin()) {
+      return;
+    }
+    this.loadData();
+  },
+
   onShow() {
+    if (!auth.checkAndRedirectToLogin()) {
+      return;
+    }
+    this.loadData();
+  },
+
+  loadData() {
     // 获取本地存储的手机号
     const phone = wx.getStorageSync('phone');
     

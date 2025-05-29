@@ -764,7 +764,7 @@ const handleApproveWithdraw = async (row) => {
       type: 'warning'
     })
     
-    const response = await axios.post(`/api/users/${row.phone}/approve-withdraw`, {
+    const response = await axios.post(`/users/${row.phone}/approve-withdraw`, {
       amount: row.applying_amount
     })
     
