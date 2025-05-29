@@ -319,26 +319,28 @@
     <el-dialog
       v-model="withdrawInfoDialogVisible"
       title="提款信息"
-      width="700px"
+      width="500px"
     >
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-descriptions title="银行卡信息" :column="1" border>
-            <el-descriptions-item label="银行卡号">{{ withdrawInfo.bank_card_number || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="持卡人姓名">{{ withdrawInfo.bank_holder_name || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="身份证号">{{ withdrawInfo.bank_id_number || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="预留手机号">{{ withdrawInfo.bank_phone || '-' }}</el-descriptions-item>
-          </el-descriptions>
-        </el-col>
-        <el-col :span="12">
-          <el-descriptions title="支付宝信息" :column="1" border>
-            <el-descriptions-item label="支付宝账号">{{ withdrawInfo.alipay_account || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="支付宝姓名">{{ withdrawInfo.alipay_holder_name || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="支付宝身份证号">{{ withdrawInfo.alipay_id_number || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="支付宝手机号">{{ withdrawInfo.alipay_phone || '-' }}</el-descriptions-item>
-          </el-descriptions>
-        </el-col>
-      </el-row>
+      <div class="payment-method-info">
+        <span class="payment-method-label">结算方式：</span>
+        <el-tag type="success">{{ withdrawInfo.use_bank ? '银行卡' : '支付宝' }}</el-tag>
+      </div>
+      <div v-if="withdrawInfo.use_bank">
+        <el-descriptions title="银行卡信息" :column="1" border>
+          <el-descriptions-item label="银行卡号">{{ withdrawInfo.bank_card_number || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="持卡人姓名">{{ withdrawInfo.bank_holder_name || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="身份证号">{{ withdrawInfo.bank_id_number || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="预留手机号">{{ withdrawInfo.bank_phone || '-' }}</el-descriptions-item>
+        </el-descriptions>
+      </div>
+      <div v-else>
+        <el-descriptions title="支付宝信息" :column="1" border>
+          <el-descriptions-item label="支付宝账号">{{ withdrawInfo.alipay_account || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="支付宝姓名">{{ withdrawInfo.alipay_holder_name || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="支付宝身份证号">{{ withdrawInfo.alipay_id_number || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="支付宝手机号">{{ withdrawInfo.alipay_phone || '-' }}</el-descriptions-item>
+        </el-descriptions>
+      </div>
     </el-dialog>
 
     <!-- 分页 -->
@@ -832,5 +834,17 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.payment-method-info {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.payment-method-label {
+  color: #606266;
+  font-size: 14px;
 }
 </style> 
