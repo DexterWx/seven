@@ -613,5 +613,63 @@ def approve_withdraw(phone):
         print(f"审批提现申请出错: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/wechat/users/<phone>/apply-withdraw', methods=['POST'])
+def wechat_apply_withdraw(phone):
+    """小程序申请提现"""
+    try:
+        data = request.get_json()
+        amount = float(data.get('amount', 0))
+        
+        # 参数验证
+        if amount <= 0:
+            return jsonify({
+                'success': False, 
+                'message': '提现金额必须大于0'
+            }), 400
+            
+        # 查找用户
+        user = User.query.filter_by(phone=phone).first()
+        if not user:
+            return jsonify({
+                'success': False, 
+                'message': '用户不存在'
+            }), 404
+            
+        # 验证金额
+        if amount > user.unwithdrawn_amount:
+            return jsonify({
+                'success': False, 
+                'message': '提现金额不能大于未提现金额'
+            }), 400
+            
+        # 检查是否有正在处理的提现申请
+        if user.applying_amount > 0:
+            return jsonify({
+                'success': False, 
+                'message': '您有正在处理的提现申请，请等待审核'
+            }), 400
+            
+        # 更新申请中的金额
+        user.applying_amount = amount
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': '提现申请已提交'
+        })
+        
+    except ValueError:
+        return jsonify({
+            'success': False,
+            'message': '无效的提现金额'
+        }), 400
+    except Exception as e:
+        db.session.rollback()
+        print(f"提现申请出错: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True) 

@@ -27,6 +27,9 @@ const API = {
     },
     INCOME_HISTORY: function(phone) {
       return `${BASE_URL}/wechat/users/${phone}/income-history`;
+    },
+    APPLY_WITHDRAW: function(phone) {
+      return `${BASE_URL}/wechat/users/${phone}/apply-withdraw`;
     }
   },
   // 设备相关接口
