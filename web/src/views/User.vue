@@ -745,6 +745,7 @@ const handleResetName = () => {
 // 处理显示提款信息
 const handleShowWithdrawInfo = (row) => {
   withdrawInfo.value = {
+    use_bank: row.use_bank,  // 添加use_bank字段
     bank_card_number: row.bank_card_number,
     bank_holder_name: row.bank_holder_name,
     bank_id_number: row.bank_id_number,

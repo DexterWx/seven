@@ -5,8 +5,29 @@ import os
 from agents import user, device, profile
 from config import Config
 import hashlib
+import logging
+from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
+
+# 配置日志
+log_dir = '/data/logs/app/seven'
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+    
+formatter = logging.Formatter(
+    '[%(asctime)s] [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+# 配置应用日志
+app_log_file = os.path.join(log_dir, 'app.log')
+app_handler = RotatingFileHandler(app_log_file, maxBytes=10*1024*1024, backupCount=10)
+app_handler.setFormatter(formatter)
+app_handler.setLevel(logging.INFO)
+app.logger.addHandler(app_handler)
+app.logger.setLevel(logging.INFO)
+
 # 配置 CORS
 CORS(app, resources={
     r"/api/*": {
@@ -620,7 +641,7 @@ def wechat_apply_withdraw(phone):
         data = request.get_json()
         amount = float(data.get('amount', 0))
         use_bank = data.get('use_bank', False)  # 获取支付方式参数
-        
+        app.logger.info(f"申请提现 - 手机号: {phone}, 金额: {amount}, use_bank: {use_bank}")
         # 参数验证
         if amount <= 0:
             return jsonify({
