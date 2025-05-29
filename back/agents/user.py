@@ -39,6 +39,7 @@ def get_all_users(page=1, per_page=10, superior_phone=None, sort_field=None, sor
             allowed_sort_fields = {
                 'unwithdrawn_amount': User.unwithdrawn_amount,
                 'withdrawn_amount': User.withdrawn_amount,
+                'applying_amount': User.applying_amount,
                 'yesterday_income': User.yesterday_income,
                 'month_income': User.month_income,
                 'team_yesterday_income': User.team_yesterday_income,

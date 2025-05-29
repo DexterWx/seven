@@ -67,6 +67,9 @@ class User(db.Model):
     
     first_level_count = db.Column(db.Integer, default=0)   # 一级下线数量
     
+    # 结算方式选择
+    use_bank = db.Column(db.Boolean, default=True)  # True表示使用银行卡，False表示使用支付宝
+    
     # 银行卡信息（可选字段）
     bank_card_number = db.Column(db.String(30), nullable=True)  # 银行卡号
     bank_holder_name = db.Column(db.String(50), nullable=True)  # 银行卡持卡人姓名
@@ -102,6 +105,7 @@ class User(db.Model):
             'team_history_sum': self.team_history_sum,
             'team_history_income': self.team_history_income,
             'first_level_count': self.first_level_count,
+            'use_bank': self.use_bank,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_login': self.last_login.isoformat() if self.last_login else None,
             # 银行卡信息
